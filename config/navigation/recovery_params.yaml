@@ -1,0 +1,16 @@
+clearing_rotation_allowed: true
+recovery_behavior_enabled: true
+
+recovery_behaviors:
+#- {name: turtle_recovery_1, type: turtle_recovery/TurtleRecovery}
+- {name: conservative_reset, type: clear_costmap_recovery/ClearCostmapRecovery}
+#- {name: turtle_recovery_2, type: turtle_recovery/TurtleRecovery}
+- {name: aggressive_reset, type: clear_costmap_recovery/ClearCostmapRecovery}
+#- {name: turtle_recovery_3, type: turtle_recovery/TurtleRecovery}
+
+aggressive_reset:
+  layer_names: ["obstacle_layer_scan"] #, "sonar_layer"]
+  reset_distance: 0.4
+conservative_reset:
+  layer_names: ["obstacle_layer_scan"] #, "sonar_layer"]
+  reset_distance: 0.5

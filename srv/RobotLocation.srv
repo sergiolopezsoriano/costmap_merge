@@ -1,0 +1,14 @@
+string robot_ns
+string robot_type
+int64 x
+int64 y
+#float64 alpha
+time ts
+---
+string robot_ns
+string robot_type
+int64 x
+int64 y
+#float64 alpha
+time ts
+

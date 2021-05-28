@@ -1,0 +1,19 @@
+<launch>
+  <arg name="robot_name"/>
+  <!--- Run AMCL -->
+<!--  <include file="$(find amcl)/examples/amcl_diff.launch"/>-->
+  <!-- Define your move_base node -->
+  <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+    <rosparam file="$(find costmap_merge)/config/navigation/costmap_common_params.yaml" command="load" ns="global_costmap" subst_value="True">$(arg robot_name)</rosparam>
+    <rosparam file="$(find costmap_merge)/config/navigation/costmap_common_params.yaml" command="load" ns="local_costmap" subst_value="True">$(arg robot_name)</rosparam>
+    <rosparam file="$(find costmap_merge)/config/navigation/local_costmap_params.yaml"  command="load" subst_value="True">$(arg robot_name)</rosparam>
+    <rosparam file="$(find costmap_merge)/config/navigation/global_costmap_params.yaml" command="load" subst_value="True">$(arg robot_name)</rosparam>
+    <rosparam file="$(find costmap_merge)/config/navigation/move_base_params.yaml" command="load" />
+    <rosparam file="$(find costmap_merge)/config/navigation/dwa_local_planner_params.yaml" command="load" subst_value="True">$(arg robot_name)</rosparam>
+    <rosparam file="$(find costmap_merge)/config/navigation/navfn_global_planner_params.yaml" command="load" />
+    <rosparam file="$(find costmap_merge)/config/navigation/global_planner_params.yaml" command="load" />
+    <rosparam file="$(find costmap_merge)/config/navigation/recovery_params.yaml" command="load" />
+    <remap from="/$(arg robot_name)/move_base/global_costmap/costmap" to="/$(arg robot_name)/global_costmap"/>
+    <remap from="/$(arg robot_name)/move_base/local_costmap/costmap" to="/$(arg robot_name)/local_costmap"/>
+  </node>
+</launch>
