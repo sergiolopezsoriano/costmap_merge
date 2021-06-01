@@ -1,0 +1,3 @@
+simulation: True
+min_detector_distance: 2
+robots_names: ['robot1', 'robot2', 'robot3']

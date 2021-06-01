@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
   <arg name="base"/>
   <arg name="stacks"/>
@@ -51,7 +52,8 @@
 
   <node name="static_tf" pkg="tf" type="static_transform_publisher" args="$(arg x) $(arg y) 0 $(arg Y) 0 0 map /$(arg tf_prefix)/odom 100"/>
 
-  <node name="costmap_merge" pkg="costmap_merge" type="merge.py" output="screen">
+  <node name="costmap_network" pkg="costmap_merge" type="costmap_network.py" output="screen">
+    <rosparam file="$(find costmap_merge)/config/costmap_network.yaml" command="load" />
     <param name="robot_type" value="$(arg robot_type)"/>
   </node>
 

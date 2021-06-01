@@ -206,16 +206,10 @@ class Merger:
                     row_start:row_start + self.robots[robot].global_costmap.info.width]
 
         if self.simulation:
-            # global_costmap.info.origin.orientation = self.robots[self.namespace].pose.pose.orientation
             global_costmap.info.origin.position.x = x_min - self.robots[
                 self.namespace].global_costmap.info.width / 2 * global_costmap.info.resolution
             global_costmap.info.origin.position.y = y_min - self.robots[
                 self.namespace].global_costmap.info.height / 2 * global_costmap.info.resolution
-            # self.quaternion = tf.transformations.quaternion_from_euler(0, 0, np.deg2rad(-90))
-            # global_costmap.info.origin.orientation.x = self.quaternion[0]
-            # global_costmap.info.origin.orientation.y = self.quaternion[1]
-            # global_costmap.info.origin.orientation.z = self.quaternion[2]
-            # global_costmap.info.origin.orientation.w = self.quaternion[3]
         else:
             global_costmap.info.origin.position.x = x_min + (
                         x_max - x_min) / 2 - global_costmap.info.width / 2 * global_costmap.info.resolution

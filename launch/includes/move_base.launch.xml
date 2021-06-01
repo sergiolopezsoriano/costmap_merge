@@ -10,7 +10,7 @@
     <rosparam file="$(find costmap_merge)/config/navigation/global_costmap_params.yaml" command="load" subst_value="True">$(arg robot_name)</rosparam>
     <rosparam file="$(find costmap_merge)/config/navigation/move_base_params.yaml" command="load" />
     <rosparam file="$(find costmap_merge)/config/navigation/dwa_local_planner_params.yaml" command="load" subst_value="True">$(arg robot_name)</rosparam>
-    <rosparam file="$(find costmap_merge)/config/navigation/navfn_global_planner_params.yaml" command="load" />
+<!--    <rosparam file="$(find costmap_merge)/config/navigation/navfn_global_planner_params.yaml" command="load" />-->
     <rosparam file="$(find costmap_merge)/config/navigation/global_planner_params.yaml" command="load" />
     <rosparam file="$(find costmap_merge)/config/navigation/recovery_params.yaml" command="load" />
     <remap from="/$(arg robot_name)/move_base/global_costmap/costmap" to="/$(arg robot_name)/global_costmap"/>

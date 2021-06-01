@@ -1,14 +1,14 @@
-string robot_ns
-string robot_type
+string namespace
+string type
 int64 x
 int64 y
-#float64 alpha
+float64 yaw
 time ts
 ---
-string robot_ns
-string robot_type
+string namespace
+string type
 int64 x
 int64 y
-#float64 alpha
+float64 yaw
 time ts
 
