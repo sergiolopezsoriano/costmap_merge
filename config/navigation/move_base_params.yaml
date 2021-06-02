@@ -19,4 +19,4 @@ base_local_planner: "dwa_local_planner/DWAPlannerROS"
 
 base_global_planner: "global_planner/GlobalPlanner" #alternatives: global_planner/GlobalPlanner, carrot_planner/CarrotPlanner, navfn/NavfnROS
 
-max_planning_retries: 3.0
+max_planning_retries: 10

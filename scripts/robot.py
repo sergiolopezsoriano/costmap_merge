@@ -18,29 +18,22 @@ def get_yaw_from_orientation(orientation):
     return tf.transformations.euler_from_quaternion(quaternion)[2]
 
 
-class Robot(object):
+class CostmapNode(object):
     def __init__(self, namespace, robot_type):
         # getting ros params
         self.namespace = namespace
         self.type = robot_type
         # Poses and costmaps
         self.pose = PoseStamped()
-        self.odom = Odometry()  # in this Robot frame, of course!
-        self.global_costmap = OccupancyGrid()
+        self.odom = Odometry()
         self.local_costmap = OccupancyGrid()
         self.merged_global_costmap = OccupancyGrid()
         # Flags to prevent publishing before both costmaps are received
-        self.global_ready = False
         self.local_ready = False
         # Odometry subscriber
         rospy.Subscriber('/' + self.namespace + '/odom', Odometry, self.cb_odom, queue_size=1)
         # Costmaps subscribers and publishers
-        rospy.Subscriber('/' + self.namespace + '/global_costmap', OccupancyGrid, self.cb_global_costmap, queue_size=1)
         rospy.Subscriber('/' + self.namespace + '/local_costmap', OccupancyGrid, self.cb_local_costmap, queue_size=1)
-
-    def cb_global_costmap(self, msg):
-        self.global_ready = True
-        self.global_costmap = msg
 
     def cb_local_costmap(self, msg):
         self.local_ready = True
@@ -53,10 +46,10 @@ class Robot(object):
         self.pose = ps
 
 
-class CostmapNode(Robot, Thread):
+class Robot(CostmapNode, Thread):
     def __init__(self, namespace, robot_type):
         Thread.__init__(self)
-        super(CostmapNode, self).__init__(namespace, robot_type)
+        super(Robot, self).__init__(namespace, robot_type)
         # Service for the Detector-Robot communication
         self.service = rospy.Service('robot_communication_service', RobotLocation, self.cb_robot_communication)
         # Proxy to update costmap_network robots
@@ -88,12 +81,12 @@ class CostmapNode(Robot, Thread):
                              queue_size=10)
 
     def publish_costmap(self):
-        if self.global_ready and self.local_ready:
+        if self.local_ready:
             self.global_publisher.publish(self.merged_global_costmap)
             self.local_publisher.publish(self.local_costmap)
 
     def cb_robot_communication(self, msg):
-        rospy.loginfo('[' + str(self.type) + '-' + str(self.namespace) + ']: Detector-' + str(msg.namespace) + ' calling')
+        # rospy.loginfo('[' + str(self.type) + '-' + str(self.namespace) + ']: Detector-' + str(msg.namespace) + ' calling')
         # Creating or updating robots in the costmap_network
         self.update_robots(msg)
         # Adding detector
@@ -113,7 +106,7 @@ class CostmapNode(Robot, Thread):
             self.lock_update_robots.release()
 
 
-class Detector(CostmapNode):
+class Detector(Robot):
     def __init__(self, namespace, robot_type):
         super(Detector, self).__init__(namespace, robot_type)
         # Loads the known robot names and initializes the proxies to talk to the robots
@@ -138,10 +131,10 @@ class Detector(CostmapNode):
             for namespace in self.robots_names:
                 if namespace != self.namespace:
                     self.talk_to_robot(namespace)
-            rospy.sleep(5)
+            rospy.sleep(1)
 
     def talk_to_robot(self, namespace):
-        rospy.loginfo('[' + str(self.type) + '-' + str(self.namespace) + ']: Talking to ' + str(namespace))
+        # rospy.loginfo('[' + str(self.type) + '-' + str(self.namespace) + ']: Talking to ' + str(namespace))
         response = self.proxies[namespace](self.namespace, self.type, self.pose.pose.position.x,
                                            self.pose.pose.position.y,
                                            get_yaw_from_orientation(self.pose.pose.orientation),
