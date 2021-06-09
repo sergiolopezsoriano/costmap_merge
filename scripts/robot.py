@@ -24,6 +24,8 @@ class CostmapNode(object):
         self.namespace = namespace
         self.type = robot_type
         # Poses and costmaps
+        self.x = int()
+        self.y = int()
         self.pose = PoseStamped()
         self.odom = Odometry()
         self.local_costmap = OccupancyGrid()
