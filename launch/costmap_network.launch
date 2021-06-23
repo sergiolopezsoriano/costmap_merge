@@ -20,7 +20,7 @@
   <group ns="robot1">
     <arg name="x" value="-5"/>
     <arg name="y" value="-3"/>
-    <arg name="Y" value="0"/>
+    <arg name="Y" value="1"/>
     <arg name="tf_prefix" value="robot1_tf"/>
     <param name="tf_prefix" value="$(arg tf_prefix)"/>
     <include file="$(find costmap_merge)/launch/includes/costmap_network.launch.xml">
@@ -40,7 +40,7 @@
   <group ns="robot2">
     <arg name="x" value="1"/>
     <arg name="y" value="3"/>
-    <arg name="Y" value="-1.57"/>
+    <arg name="Y" value="-1.2"/>
     <arg name="tf_prefix" value="robot2_tf"/>
     <param name="tf_prefix" value="$(arg tf_prefix)"/>
     <include file="$(find costmap_merge)/launch/includes/costmap_network.launch.xml">
@@ -60,7 +60,7 @@
   <group ns="robot3">
     <arg name="x" value="-3"/>
     <arg name="y" value="0"/>
-    <arg name="Y" value="3.1416"/>
+    <arg name="Y" value="2.9"/>
     <arg name="tf_prefix" value="robot3_tf"/>
     <param name="tf_prefix" value="$(arg tf_prefix)"/>
     <include file="$(find costmap_merge)/launch/includes/costmap_network.launch.xml">

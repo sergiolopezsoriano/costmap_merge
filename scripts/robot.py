@@ -2,20 +2,11 @@
 
 import rospy
 from nav_msgs.msg import OccupancyGrid, Odometry
-import tf
+from cn_lib import get_yaw_from_orientation
 from geometry_msgs.msg import PoseStamped
 from costmap_merge.srv import RobotLocation, RobotLocationResponse
 from costmap_merge.msg import RobotDetected
 from threading import Thread, Lock
-
-
-def get_yaw_from_orientation(orientation):
-    quaternion = [0] * 4
-    quaternion[0] = orientation.x
-    quaternion[1] = orientation.y
-    quaternion[2] = orientation.z
-    quaternion[3] = orientation.w
-    return tf.transformations.euler_from_quaternion(quaternion)[2]
 
 
 class CostmapNode(object):
@@ -29,6 +20,8 @@ class CostmapNode(object):
         self.pose = PoseStamped()
         self.odom = Odometry()
         self.local_costmap = OccupancyGrid()
+        self.roloco_width = int()
+        self.roloco_height = int()
         self.merged_global_costmap = OccupancyGrid()
         # Flags to prevent publishing before both costmaps are received
         self.local_ready = False
@@ -133,7 +126,7 @@ class Detector(Robot):
             for namespace in self.robots_names:
                 if namespace != self.namespace:
                     self.talk_to_robot(namespace)
-            rospy.sleep(1)
+            # rospy.sleep(1)
 
     def talk_to_robot(self, namespace):
         # rospy.loginfo('[' + str(self.type) + '-' + str(self.namespace) + ']: Talking to ' + str(namespace))

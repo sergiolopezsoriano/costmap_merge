@@ -2,29 +2,13 @@
 
 import traceback
 import rospy
-from nav_msgs.msg import OccupancyGrid, Odometry
+from nav_msgs.msg import OccupancyGrid
 import tf
 import numpy as np
-from geometry_msgs.msg import PoseStamped
 from costmap_merge.srv import RobotLocation, RobotLocationResponse
 import robot as rb
-
-
-def get_map_to_odom_transform(namespace):
-    pose_tf = PoseStamped()
-    time = rospy.Time(0)
-    tl = tf.TransformListener()
-    tl.waitForTransform('/map', '/' + namespace + '_tf/odom', time, rospy.Duration(1.0))
-    (position, orientation) = tl.lookupTransform('/map', '/' + namespace + '_tf/odom', time)
-    pose_tf.pose.position.x = position[0]
-    pose_tf.pose.position.y = position[1]
-    pose_tf.pose.position.z = position[2]
-    pose_tf.pose.orientation.x = orientation[0]
-    pose_tf.pose.orientation.y = orientation[1]
-    pose_tf.pose.orientation.z = orientation[2]
-    pose_tf.pose.orientation.w = orientation[3]
-    pose_tf.header.stamp = time
-    return pose_tf
+import cn_lib
+import math
 
 
 class CostmapNetwork:
@@ -46,7 +30,7 @@ class CostmapNetwork:
         # TODO: The transform must be received from the AI and the Find_robot_in_costmap scripts every time it's
         #  detected by the detector
         if self.simulation:
-            self.robots[self.namespace].pose = get_map_to_odom_transform(self.namespace)
+            self.robots[self.namespace].pose = cn_lib.get_map_to_odom_transform(self.namespace)
         self.robots[self.namespace].start()
 
     def cb_update_robot(self, msg):
@@ -73,64 +57,41 @@ class CostmapNetwork:
         x_max_list = []
         y_min_list = []
         y_max_list = []
+        # Calculating the position of all robots
         for robot in self.robots:
-            yaw = rb.get_yaw_from_orientation(self.robots[robot].pose.pose.orientation)
-            if abs(yaw) <= np.pi / 4 or abs(yaw) > 3 * np.pi / 4:
-                if abs(yaw) <= np.pi / 4:
-                    sign = 1
-                else:
-                    sign = -1
-                self.robots[robot].x = self.robots[robot].pose.pose.position.x + self.robots[
-                    robot].odom.pose.pose.position.x * sign
-                self.robots[robot].y = self.robots[robot].pose.pose.position.y + self.robots[
-                    robot].odom.pose.pose.position.y * sign
-                x_min_list.append(self.robots[robot].x - self.robots[
-                    robot].local_costmap.info.width * global_costmap.info.resolution / 2)
-                x_max_list.append(self.robots[robot].x + self.robots[
-                    robot].local_costmap.info.width * global_costmap.info.resolution / 2)
-                y_min_list.append(self.robots[robot].y - self.robots[
-                    robot].local_costmap.info.height * global_costmap.info.resolution / 2)
-                y_max_list.append(self.robots[robot].y + self.robots[
-                    robot].local_costmap.info.height * global_costmap.info.resolution / 2)
-            if np.pi / 4 < abs(yaw) <= 3 * np.pi / 4:
-                if np.pi / 4 < yaw <= 3 * np.pi / 4:
-                    sign_x = -1  # -np.sin(yaw)
-                    sign_y = 1  # np.sin(yaw)
-                elif -np.pi / 4 > yaw >= -3 * np.pi / 4:
-                    sign_x = 1
-                    sign_y = -1
-                self.robots[robot].x = self.robots[robot].pose.pose.position.x + self.robots[
-                    robot].odom.pose.pose.position.y * sign_x
-                self.robots[robot].y = self.robots[robot].pose.pose.position.y + self.robots[
-                    robot].odom.pose.pose.position.x * sign_y
-                x_min_list.append(self.robots[robot].x - self.robots[
-                    robot].local_costmap.info.width * global_costmap.info.resolution / 2)
-                x_max_list.append(self.robots[robot].x + self.robots[
-                    robot].local_costmap.info.width * global_costmap.info.resolution / 2)
-                y_min_list.append(self.robots[robot].y - self.robots[
-                    robot].local_costmap.info.height * global_costmap.info.resolution / 2)
-                y_max_list.append(self.robots[robot].y + self.robots[
-                    robot].local_costmap.info.height * global_costmap.info.resolution / 2)
+            while not self.robots[robot].local_ready:
+                rospy.sleep(1)
+            yaw = cn_lib.get_yaw_from_orientation(self.robots[robot].pose.pose.orientation)
+            self.calculate_costmap_size(yaw, robot)
+            self.robots[robot].x = self.robots[robot].pose.pose.position.x + self.robots[
+                robot].odom.pose.pose.position.x * np.cos(yaw) - self.robots[
+                robot].odom.pose.pose.position.y * np.sin(yaw)
+            self.robots[robot].y = self.robots[robot].pose.pose.position.y + self.robots[
+                robot].odom.pose.pose.position.y * np.cos(yaw) + self.robots[
+                robot].odom.pose.pose.position.x * np.sin(yaw)
+            x_min_list.append(
+                self.robots[robot].x - self.robots[robot].roloco_width * global_costmap.info.resolution / 2)
+            x_max_list.append(
+                self.robots[robot].x + self.robots[robot].roloco_width * global_costmap.info.resolution / 2)
+            y_min_list.append(
+                self.robots[robot].y - self.robots[robot].roloco_height * global_costmap.info.resolution / 2)
+            y_max_list.append(
+                self.robots[robot].y + self.robots[robot].roloco_height * global_costmap.info.resolution / 2)
         for robot in self.robots:
-            if min(x_min_list) == self.robots[robot].x - self.robots[robot].local_costmap.info.width * global_costmap.info.resolution / 2:
+            if min(x_min_list) == self.robots[robot].x - self.robots[robot].roloco_width * global_costmap.info.resolution / 2:
                 robot_xmin = robot
-            if max(x_max_list) == self.robots[robot].x + self.robots[robot].local_costmap.info.width * global_costmap.info.resolution / 2:
+            if max(x_max_list) == self.robots[robot].x + self.robots[robot].roloco_width * global_costmap.info.resolution / 2:
                 robot_xmax = robot
-            if min(y_min_list) == self.robots[robot].y - self.robots[robot].local_costmap.info.height * global_costmap.info.resolution / 2:
+            if min(y_min_list) == self.robots[robot].y - self.robots[robot].roloco_height * global_costmap.info.resolution / 2:
                 robot_ymin = robot
-            if max(y_max_list) == self.robots[robot].y + self.robots[robot].local_costmap.info.height * global_costmap.info.resolution / 2:
+            if max(y_max_list) == self.robots[robot].y + self.robots[robot].roloco_height * global_costmap.info.resolution / 2:
                 robot_ymax = robot
-        # rospy.logdebug('[costmap_network-' + str(self.namespace) + '] x_min: ' + str(x_min))
-        # rospy.logdebug('[costmap_network-' + str(self.namespace) + '] y_min: ' + str(y_min))
         global_costmap.info.width = int(
             (self.robots[robot_xmax].x - self.robots[robot_xmin].x) / global_costmap.info.resolution) + self.robots[
-                                        robot_xmax].local_costmap.info.width / 2 + self.robots[
-                                        robot_xmin].local_costmap.info.width / 2
+                                        robot_xmax].roloco_width / 2 + self.robots[robot_xmin].roloco_width / 2
         global_costmap.info.height = int(
             (self.robots[robot_ymax].y - self.robots[robot_ymin].y) / global_costmap.info.resolution) + self.robots[
-                                         robot_ymax].local_costmap.info.height / 2 + self.robots[
-                                         robot_ymin].local_costmap.info.height / 2
-
+                                         robot_ymax].roloco_height / 2 + self.robots[robot_ymin].roloco_height / 2
         # Filling the global global costmap with random numbers
         global_costmap.data = np.random.random_integers(self.occupancy_range, size=(
                     global_costmap.info.width * global_costmap.info.height)).tolist()
@@ -141,64 +102,35 @@ class CostmapNetwork:
         # Adding all robots global_costmaps to the merged_global_costmap
         for robot in self.robots:
             if robot != self.namespace:
-                self.add_costmap(robot, global_costmap, self.robots[robot_xmin].x, self.robots[robot_ymin].y, robot_xmin, robot_ymin)
+                self.add_costmap(robot, global_costmap, robot_xmin, robot_ymin)
         # Self costmap over the other ones
-        self.add_costmap(self.namespace, global_costmap, self.robots[robot_xmin].x, self.robots[robot_ymin].y, robot_xmin, robot_ymin)
+        self.add_costmap(self.namespace, global_costmap, robot_xmin, robot_ymin)
 
         global_costmap.info.origin.position.x = self.robots[robot_xmin].x - self.robots[
-            robot_xmin].local_costmap.info.width / 2 * global_costmap.info.resolution
+            robot_xmin].roloco_width / 2 * global_costmap.info.resolution
         global_costmap.info.origin.position.y = self.robots[robot_ymin].y - self.robots[
-            robot_ymin].local_costmap.info.height / 2 * global_costmap.info.resolution
+            robot_ymin].roloco_height / 2 * global_costmap.info.resolution
         return global_costmap
 
-    def rotate_costmap_90(self, data, times, robot):
-        data = np.reshape(data, (self.robots[robot].local_costmap.info.width,
-                                 self.robots[robot].local_costmap.info.height))
-        data = np.rot90(data, times)
-        data = np.reshape(data, (self.robots[robot].local_costmap.info.width *
-                                 self.robots[robot].local_costmap.info.height)).tolist()
-        return data
-
-    def add_costmap(self, robot, global_costmap, x_min, y_min, robot_xmin, robot_ymin):
+    def add_costmap(self, robot, global_costmap, robot_xmin, robot_ymin):
         # Taking into account the starting angle
-        yaw = rb.get_yaw_from_orientation(self.robots[robot].pose.pose.orientation)
-        if abs(yaw) <= np.pi / 4 or abs(yaw) > 3 * np.pi / 4:
-            if -np.pi / 4 <= yaw <= np.pi / 4:
-                sign = 1
-                data = self.robots[robot].local_costmap.data
-            else:
-                sign = -1
-                data = self.robots[robot].local_costmap.data[::-1]
-            pos_x = int((self.robots[robot].pose.pose.position.x + self.robots[
-                robot].odom.pose.pose.position.x * sign - x_min) / global_costmap.info.resolution) + self.robots[
-                        robot_xmin].local_costmap.info.width / 2 - self.robots[robot].local_costmap.info.width / 2
-            pos_y = int((self.robots[robot].pose.pose.position.y + self.robots[
-                robot].odom.pose.pose.position.y * sign - y_min) / global_costmap.info.resolution) + self.robots[
-                        robot_ymin].local_costmap.info.height / 2 - self.robots[robot].local_costmap.info.height / 2
-        elif np.pi / 4 < abs(yaw) <= 3 * np.pi / 4:
-            if np.pi / 4 < yaw <= 3 * np.pi / 4:
-                sign_x = -1
-                sign_y = 1
-                data = self.robots[robot].local_costmap.data
-                data = self.rotate_costmap_90(data, 3, robot)
-            elif -np.pi / 4 > yaw >= -3 * np.pi / 4:
-                sign_x = 1
-                sign_y = -1
-                data = self.robots[robot].local_costmap.data
-                data = self.rotate_costmap_90(data, 1, robot)
-            pos_x = int((self.robots[robot].pose.pose.position.x + self.robots[
-                robot].odom.pose.pose.position.y * sign_x - x_min) / global_costmap.info.resolution) + self.robots[
-                        robot_xmin].local_costmap.info.width / 2 - self.robots[robot].local_costmap.info.width / 2
-            pos_y = int((self.robots[robot].pose.pose.position.y + self.robots[
-                robot].odom.pose.pose.position.x * sign_y - y_min) / global_costmap.info.resolution) + self.robots[
-                        robot_ymin].local_costmap.info.height / 2 - self.robots[robot].local_costmap.info.height / 2
+        yaw = cn_lib.get_yaw_from_orientation(self.robots[robot].pose.pose.orientation)
+        data = self.rotate_costmap(yaw, robot)
+        pos_x = int((self.robots[robot].pose.pose.position.x + self.robots[robot].odom.pose.pose.position.x * np.cos(
+            yaw) - self.robots[robot].odom.pose.pose.position.y * np.sin(yaw) - self.robots[
+                         robot_xmin].x) / global_costmap.info.resolution) + self.robots[
+                    robot_xmin].roloco_width / 2 - self.robots[robot].roloco_width / 2
+        pos_y = int((self.robots[robot].pose.pose.position.y + self.robots[robot].odom.pose.pose.position.y * np.cos(
+            yaw) + self.robots[robot].odom.pose.pose.position.x * np.sin(yaw) - self.robots[
+                         robot_ymin].y) / global_costmap.info.resolution) + self.robots[
+                    robot_ymin].roloco_height / 2 - self.robots[robot].roloco_height / 2
 
-        for row in range(self.robots[robot].local_costmap.info.height):
-            row_start = row * self.robots[robot].local_costmap.info.width
+        for row in range(self.robots[robot].roloco_height):
+            row_start = row * self.robots[robot].roloco_width
             global_costmap.data[(row + pos_y) * global_costmap.info.width + pos_x:
                                 (row + pos_y) * global_costmap.info.width + pos_x +
-                                self.robots[robot].local_costmap.info.width] = \
-                data[row_start:row_start + self.robots[robot].local_costmap.info.width]
+                                self.robots[robot].roloco_width] = \
+                data[row_start:row_start + self.robots[robot].roloco_width]
         return global_costmap
 
         ####################### overlapping costmaps ########################
@@ -208,6 +140,85 @@ class CostmapNetwork:
         #                 global_costmap.data[(row + pos_y) * global_costmap.info.width + pos_x + col]:
         #             global_costmap.data[(row + pos_y) * global_costmap.info.width + pos_x + col] = \
         #                 data[row * self.robots[robot].local_costmap.info.width + col]
+
+    def calculate_costmap_size(self, angle, robot):
+        resol = self.robots[robot].local_costmap.info.resolution
+        width1 = self.robots[robot].local_costmap.info.width
+        height1 = self.robots[robot].local_costmap.info.height
+        d = math.sqrt((resol * width1) ** 2 + (resol * height1) ** 2)
+        theta = math.atan(height1 / width1)
+        height2 = abs(d * math.sin(abs(angle) + theta))
+        width2 = abs(d * math.cos(abs(angle) - theta))
+        if height2 % resol == 0:
+            height2 = int(height2 / resol)
+        else:
+            height2 = int(height2 / resol) + 1
+        if width2 % resol == 0:
+            width2 = int(width2 / resol)
+        else:
+            width2 = int(width2 / resol) + 1
+        self.robots[robot].roloco_width = width2
+        self.robots[robot].roloco_height = height2
+
+    def rotate_costmap(self, angle, robot):  # angle in radians
+        a = rospy.get_rostime()
+        resol = self.robots[robot].local_costmap.info.resolution
+        width1 = self.robots[robot].local_costmap.info.width
+        height1 = self.robots[robot].local_costmap.info.height
+        data = np.reshape(self.robots[robot].local_costmap.data, (width1, height1))
+        # center of the initial costmap matrix in cartesian coordinates
+        xo1 = self.robots[robot].local_costmap.info.origin.position.x
+        yo1 = self.robots[robot].local_costmap.info.origin.position.y
+        origin = [self.robots[robot].local_costmap.info.origin.position.x + width1 / 2 * resol,
+                  self.robots[robot].local_costmap.info.origin.position.y + height1 / 2 * resol]
+        height2 = self.robots[robot].roloco_height
+        width2 = self.robots[robot].roloco_width
+        x1 = list()
+        y1 = list()
+        x2 = list()
+        y2 = list()
+        # data2 = np.random.random_integers(self.occupancy_range, size=(width2 * height2))
+        # data2 = np.reshape(data2, (width2, height2)).tolist()
+        data2 = np.zeros([width2, height2])
+        # positions corresponding with the cell grid
+        x = xo1 - (float(width2) - float(width1)) / 2 * resol
+        y = yo1 - (float(height2) - float(height1)) / 2 * resol
+        for row in range(width2):
+            x1.append(x + row * resol)
+            x2.append(x + row * resol)
+        for col in range(height2):
+            y1.append(y + col * resol)
+            y2.append(y + col * resol)
+        index_x = 0
+        index_y = 0
+        b = rospy.get_rostime()
+        rospy.loginfo('[' + str(self.namespace) + '-' + str(robot) + '] b: ' + str(b.secs - a.secs))
+        for row in range(height1):
+            for col in range(width1):
+                point1 = [xo1 + row * resol, yo1 + col * resol]
+                point2 = cn_lib.rotate(origin, point1, angle)
+                # index_x = list(filter(lambda i: i > point2[0], x1))[0]
+                # index_y = list(filter(lambda i: i > point2[1], y1))[0]
+                for value in x1:
+                    if value > point2[0]:
+                        index_x = x1.index(value)
+                        break
+                for value in y1:
+                    if value > point2[1]:
+                        index_y = y1.index(value)
+                        break
+                data2[index_x][index_y] = data[row][col]
+        c = rospy.get_rostime()
+        rospy.loginfo('[' + str(self.namespace) + '-' + str(robot) + '] c: ' + str(c.secs - a.secs))
+        for row in range(height2):
+            for col in range(width2):
+                if data2[row][col] == 0 and (data2[row - 1][col] != 0) and (data2[row + 1][col] != 0) and (data2[row][col - 1] != 0) and (data2[row][col + 1] != 0):
+                    data2[row][col] = (data2[row - 1][col] + data2[row + 1][col] + data2[row][col - 1] + data2[row][
+                        col + 1]) / 4
+        d = rospy.get_rostime()
+        rospy.loginfo('[' + str(self.namespace) + '-' + str(robot) + '] d: ' + str(d.secs - a.secs))
+        data2 = np.reshape(data2, (width2 * height2)).tolist()
+        return data2
 
 
 if __name__ == "__main__":
@@ -221,7 +232,7 @@ if __name__ == "__main__":
             rospy.sleep(1)
         while not rospy.is_shutdown():
             cn.robots[cn.namespace].merged_global_costmap = cn.build_global_costmap()
-            rospy.sleep(1)
+            # rospy.sleep(1)
 
     except Exception as e:
         rospy.logfatal('[costmap_network]: Exception %s', str(e.message) + str(e.args))
