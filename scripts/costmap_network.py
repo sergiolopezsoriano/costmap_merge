@@ -93,11 +93,11 @@ class CostmapNetwork:
             (self.robots[robot_ymax].y - self.robots[robot_ymin].y) / global_costmap.info.resolution) + self.robots[
                                          robot_ymax].roloco_height / 2 + self.robots[robot_ymin].roloco_height / 2
         # Filling the global global costmap with random numbers
-        global_costmap.data = np.random.random_integers(self.occupancy_range, size=(
-                    global_costmap.info.width * global_costmap.info.height)).tolist()
+        # global_costmap.data = np.random.random_integers(self.occupancy_range, size=(
+        #             global_costmap.info.width * global_costmap.info.height)).tolist()
 
         # zero padding
-        # global_costmap.data = np.zeros(int(global_costmap.info.width * global_costmap.info.height)).tolist()
+        global_costmap.data = np.zeros(int(global_costmap.info.width * global_costmap.info.height)).tolist()
 
         # Adding all robots global_costmaps to the merged_global_costmap
         for robot in self.robots:
@@ -157,8 +157,8 @@ class CostmapNetwork:
             width2 = int(width2 / resol)
         else:
             width2 = int(width2 / resol) + 1
-        self.robots[robot].roloco_width = width2
-        self.robots[robot].roloco_height = height2
+        self.robots[robot].roloco_width = max(width1, width2)
+        self.robots[robot].roloco_height = max(height1, height2)
 
     def rotate_costmap(self, angle, robot):  # angle in radians
         a = rospy.get_rostime()
@@ -212,9 +212,12 @@ class CostmapNetwork:
         rospy.loginfo('[' + str(self.namespace) + '-' + str(robot) + '] c: ' + str(c.secs - a.secs))
         for row in range(height2):
             for col in range(width2):
-                if data2[row][col] == 0 and (data2[row - 1][col] != 0) and (data2[row + 1][col] != 0) and (data2[row][col - 1] != 0) and (data2[row][col + 1] != 0):
-                    data2[row][col] = (data2[row - 1][col] + data2[row + 1][col] + data2[row][col - 1] + data2[row][
-                        col + 1]) / 4
+                try:
+                    if data2[row][col] == 0 and (data2[row - 1][col] != 0) and (data2[row + 1][col] != 0) and (data2[row][col - 1] != 0) and (data2[row][col + 1] != 0):
+                        data2[row][col] = (data2[row - 1][col] + data2[row + 1][col] + data2[row][col - 1] + data2[row][
+                            col + 1]) / 4
+                except:
+                    pass
         d = rospy.get_rostime()
         rospy.loginfo('[' + str(self.namespace) + '-' + str(robot) + '] d: ' + str(d.secs - a.secs))
         data2 = np.reshape(data2, (width2 * height2)).tolist()
