@@ -2,7 +2,7 @@
 
 import rospy
 from nav_msgs.msg import OccupancyGrid, Odometry
-from cn_lib import get_yaw_from_orientation
+from cn_lib import get_yaw_from_orientation, get_map_to_odom_transform
 from geometry_msgs.msg import PoseStamped
 from costmap_merge.srv import RobotLocation, RobotLocationResponse, RobotDetected, RobotDetectedResponse
 from costmap_merge.msg import RobotPub
@@ -12,6 +12,13 @@ from threading import Thread, Lock
 class OdomNode(object):
     def __init__(self, namespace):
         self.namespace = namespace
+        # Initial pose
+        self.pose = PoseStamped()
+        # Rotated coordinates
+        self.x = int()
+        self.y = int()
+        # Flags to prevent publishing before the odometry is received
+        self.local_ready = False
         # Odometry subscriber
         self.odom = Odometry()
         rospy.Subscriber('/' + namespace + '/odom', Odometry, self.cb_odom, queue_size=1)
@@ -19,19 +26,20 @@ class OdomNode(object):
     def cb_odom(self, msg):
         self.odom = msg
 
+    def set_pose(self, ps):
+        self.pose = ps
+
 
 class CostmapNode(OdomNode):
     def __init__(self, namespace, robot_type):
         super(CostmapNode, self).__init__(namespace)
         self.type = robot_type
-        # Poses and costmaps
-        self.x = int()
-        self.y = int()
-        self.pose = PoseStamped()
+        # Costmaps
         self.local_costmap = OccupancyGrid()
+        self.merged_global_costmap = OccupancyGrid()
+        # Rotated local costmap dimensions
         self.roloco_width = int()
         self.roloco_height = int()
-        self.merged_global_costmap = OccupancyGrid()
         # Flags to prevent publishing before both costmaps are received
         self.local_ready = False
         # Costmaps subscriber
@@ -41,14 +49,13 @@ class CostmapNode(OdomNode):
         self.local_ready = True
         self.local_costmap = msg
 
-    def set_pose(self, ps):
-        self.pose = ps
-
 
 class Robot(CostmapNode, Thread):
     def __init__(self, namespace, robot_type):
         Thread.__init__(self)
         super(Robot, self).__init__(namespace, robot_type)
+        # Setting the initial pose of the Robot
+        self.set_pose(get_map_to_odom_transform(self.namespace))
         # Service for the Detector-Robot communication
         self.robot_communication_service = rospy.Service('robot_communication_service', RobotLocation,
                                                          self.cb_robot_communication)
@@ -57,8 +64,6 @@ class Robot(CostmapNode, Thread):
         self.update_robots_proxy = rospy.ServiceProxy('/' + self.namespace + '/update_robots', RobotLocation)
         # Lock to avoid concurrent calls with the update_robots_proxy
         self.lock_update_robots = Lock()
-        # Flag for simulation
-        self.simulation = rospy.get_param('~simulation')
         # Costmap Publishers
         self.local_publisher = rospy.Publisher('/' + self.namespace + '/move_base/local_costmap/costmap',
                                                OccupancyGrid, queue_size=1)
@@ -112,9 +117,9 @@ class Detector(Robot):
     def __init__(self, namespace, robot_type):
         super(Detector, self).__init__(namespace, robot_type)
         # Iinitializes the proxies dictionary for the robot communication
-        self.proxies = dict()
+        self.robot_communication_proxies = dict()
         # Service receiving the detected robot's name
-        self.robot_detection_service = rospy.Service('robot_detection', RobotDetected, self.cb_robot_detection)
+        self.robot_detection_service = rospy.Service('robot_detection_service', RobotDetected, self.cb_robot_detection)
         # Publisher that shares the last detected robot
         self.detected_robots_publisher = rospy.Publisher('/' + self.namespace + '/detected_robots_topic', RobotPub,
                                                          queue_size=10)
@@ -122,15 +127,15 @@ class Detector(Robot):
     def cb_robot_detection(self, msg):
         """When the AI node detects a robot, it starts the communication"""
         # Adding a proxy for communication with the detected robot
-        if msg.robot_name not in self.proxies:
-            rospy.wait_for_service('/' + msg.robot_name + '/robot_communication_service')
-            self.proxies[msg.robot_name] = rospy.ServiceProxy('/' + msg.robot_name + '/robot_communication_service',
-                                                              RobotLocation)
-        # rospy.loginfo('[' + str(self.type) + '-' + str(self.namespace) + ']: Talking to ' + str(namespace))
-        response = self.proxies[msg.robot_name](self.namespace, self.type, self.pose.pose.position.x,
-                                                self.pose.pose.position.y,
-                                                get_yaw_from_orientation(self.pose.pose.orientation),
-                                                self.pose.header.stamp)
+        if msg.namespace not in self.robot_communication_proxies:
+            rospy.wait_for_service('/' + msg.namespace + '/robot_communication_service')
+            self.robot_communication_proxies[msg.namespace] = rospy.ServiceProxy(
+                '/' + msg.namespace + '/robot_communication_service', RobotLocation)
+        rospy.loginfo('[' + str(self.type) + '-' + str(self.namespace) + ']: Talking to ' + str(msg.namespace))
+        response = self.robot_communication_proxies[msg.namespace](self.namespace, self.type, self.pose.pose.position.x,
+                                                                   self.pose.pose.position.y,
+                                                                   get_yaw_from_orientation(self.pose.pose.orientation),
+                                                                   self.pose.header.stamp)
         self.update_robots(response)
         self.detected_robots_publisher.publish(response)
         return RobotDetectedResponse(True)

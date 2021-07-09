@@ -18,9 +18,9 @@
   </include>
 
   <group ns="robot1">
-    <arg name="x" value="-5"/>
-    <arg name="y" value="-3"/>
-    <arg name="Y" value="1"/>
+    <arg name="x" value="-1"/>
+    <arg name="y" value="2"/>
+    <arg name="Y" value="1.57"/>
     <arg name="tf_prefix" value="robot1_tf"/>
     <param name="tf_prefix" value="$(arg tf_prefix)"/>
     <include file="$(find costmap_merge)/launch/includes/costmap_network.launch.xml">
@@ -35,12 +35,15 @@
       <arg name="tf_prefix" value="$(arg tf_prefix)"/>
       <arg name="robot_type" value="detector"/>
     </include>
+    <node name="robot_detection" pkg="costmap_merge" type="robot_detection.py" output="screen">
+      <rosparam file="$(find costmap_merge)/config/costmap_network.yaml" command="load" />
+    </node>
   </group>
 
   <group ns="robot2">
-    <arg name="x" value="1"/>
-    <arg name="y" value="3"/>
-    <arg name="Y" value="-1.2"/>
+    <arg name="x" value="0"/>
+    <arg name="y" value="0.75"/>
+    <arg name="Y" value="1.57"/>
     <arg name="tf_prefix" value="robot2_tf"/>
     <param name="tf_prefix" value="$(arg tf_prefix)"/>
     <include file="$(find costmap_merge)/launch/includes/costmap_network.launch.xml">
@@ -57,24 +60,24 @@
     </include>
   </group>
 
-  <group ns="robot3">
-    <arg name="x" value="-3"/>
-    <arg name="y" value="0"/>
-    <arg name="Y" value="2.9"/>
-    <arg name="tf_prefix" value="robot3_tf"/>
-    <param name="tf_prefix" value="$(arg tf_prefix)"/>
-    <include file="$(find costmap_merge)/launch/includes/costmap_network.launch.xml">
-      <arg name="x" value="$(arg x)"/>
-      <arg name="y" value="$(arg y)"/>
-      <arg name="Y" value="$(arg Y)"/>
-      <arg name="base" value="$(arg base)"/>
-      <arg name="stacks" value="$(arg stacks)"/>
-      <arg name="3d_sensor" value="$(arg 3d_sensor)"/>
-      <arg name="init_pose" value="-x $(arg x) -y $(arg y) -z 0 -R 0 -P 0 -Y $(arg Y)" />
-      <arg name="robot_name"  value="robot3" />
-      <arg name="tf_prefix" value="$(arg tf_prefix)"/>
-      <arg name="robot_type" value="robot"/>
-    </include>
-  </group>
+<!--  <group ns="robot3">-->
+<!--    <arg name="x" value="3"/>-->
+<!--    <arg name="y" value="0"/>-->
+<!--    <arg name="Y" value="2.9"/>-->
+<!--    <arg name="tf_prefix" value="robot3_tf"/>-->
+<!--    <param name="tf_prefix" value="$(arg tf_prefix)"/>-->
+<!--    <include file="$(find costmap_merge)/launch/includes/costmap_network.launch.xml">-->
+<!--      <arg name="x" value="$(arg x)"/>-->
+<!--      <arg name="y" value="$(arg y)"/>-->
+<!--      <arg name="Y" value="$(arg Y)"/>-->
+<!--      <arg name="base" value="$(arg base)"/>-->
+<!--      <arg name="stacks" value="$(arg stacks)"/>-->
+<!--      <arg name="3d_sensor" value="$(arg 3d_sensor)"/>-->
+<!--      <arg name="init_pose" value="-x $(arg x) -y $(arg y) -z 0 -R 0 -P 0 -Y $(arg Y)" />-->
+<!--      <arg name="robot_name"  value="robot3" />-->
+<!--      <arg name="tf_prefix" value="$(arg tf_prefix)"/>-->
+<!--      <arg name="robot_type" value="robot"/>-->
+<!--    </include>-->
+<!--  </group>-->
  
 </launch>

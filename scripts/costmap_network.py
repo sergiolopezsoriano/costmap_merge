@@ -16,21 +16,17 @@ class CostmapNetwork:
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')
         self.type = rospy.get_param('~robot_type')
-        self.simulation = rospy.get_param('~simulation')
         # Server for creating and updating robots
         self.service = rospy.Service('update_robots', RobotLocation, self.cb_update_robot)
         # Costmap information
         self.occupancy_range = 100
-        # Creating and starting the costmap_node
+        # Dictionary for the costmap_network nodes
         self.robots = dict()
+        # Creating and starting the robot_node
         if self.type == 'detector':
             self.robots[self.namespace] = rb.Detector(self.namespace, self.type)
         else:
             self.robots[self.namespace] = rb.Robot(self.namespace, self.type)
-        # TODO: The transform must be received from the AI and the Find_robot_in_costmap scripts every time it's
-        #  detected by the detector
-        if self.simulation:
-            self.robots[self.namespace].pose = cn_lib.get_map_to_odom_transform(self.namespace)
         self.robots[self.namespace].start()
 
     def cb_update_robot(self, msg):
@@ -93,13 +89,13 @@ class CostmapNetwork:
             (self.robots[robot_ymax].y - self.robots[robot_ymin].y) / global_costmap.info.resolution) + self.robots[
                                          robot_ymax].roloco_height / 2 + self.robots[robot_ymin].roloco_height / 2
         # Filling the global global costmap with random numbers
-        # global_costmap.data = np.random.random_integers(self.occupancy_range, size=(
-        #             global_costmap.info.width * global_costmap.info.height)).tolist()
+        global_costmap.data = np.random.random_integers(self.occupancy_range, size=(
+                    global_costmap.info.width * global_costmap.info.height)).tolist()
 
         # zero padding
-        global_costmap.data = np.zeros(int(global_costmap.info.width * global_costmap.info.height)).tolist()
+        # global_costmap.data = np.zeros(int(global_costmap.info.width * global_costmap.info.height)).tolist()
 
-        # Adding all robots global_costmaps to the merged_global_costmap
+        # Adding all robots local_costmaps to the merged_global_costmap
         for robot in self.robots:
             if robot != self.namespace:
                 self.add_costmap(robot, global_costmap, robot_xmin, robot_ymin)
@@ -157,8 +153,8 @@ class CostmapNetwork:
             width2 = int(width2 / resol)
         else:
             width2 = int(width2 / resol) + 1
-        self.robots[robot].roloco_width = max(width1, width2)
-        self.robots[robot].roloco_height = max(height1, height2)
+        self.robots[robot].roloco_width = width2  # max(width1, width2)
+        self.robots[robot].roloco_height = height2  # max(height1, height2)
 
     def rotate_costmap(self, angle, robot):  # angle in radians
         a = rospy.get_rostime()
@@ -192,7 +188,7 @@ class CostmapNetwork:
         index_x = 0
         index_y = 0
         b = rospy.get_rostime()
-        rospy.loginfo('[' + str(self.namespace) + '-' + str(robot) + '] b: ' + str(b.secs - a.secs))
+        # rospy.loginfo('[' + str(self.namespace) + '-' + str(robot) + '] b: ' + str(b.secs - a.secs))
         for row in range(height1):
             for col in range(width1):
                 point1 = [xo1 + row * resol, yo1 + col * resol]
@@ -209,7 +205,7 @@ class CostmapNetwork:
                         break
                 data2[index_x][index_y] = data[row][col]
         c = rospy.get_rostime()
-        rospy.loginfo('[' + str(self.namespace) + '-' + str(robot) + '] c: ' + str(c.secs - a.secs))
+        # rospy.loginfo('[' + str(self.namespace) + '-' + str(robot) + '] c: ' + str(c.secs - a.secs))
         for row in range(height2):
             for col in range(width2):
                 try:
@@ -219,7 +215,7 @@ class CostmapNetwork:
                 except:
                     pass
         d = rospy.get_rostime()
-        rospy.loginfo('[' + str(self.namespace) + '-' + str(robot) + '] d: ' + str(d.secs - a.secs))
+        # rospy.loginfo('[' + str(self.namespace) + '-' + str(robot) + '] d: ' + str(d.secs - a.secs))
         data2 = np.reshape(data2, (width2 * height2)).tolist()
         return data2
 
@@ -235,7 +231,6 @@ if __name__ == "__main__":
             rospy.sleep(1)
         while not rospy.is_shutdown():
             cn.robots[cn.namespace].merged_global_costmap = cn.build_global_costmap()
-            # rospy.sleep(1)
 
     except Exception as e:
         rospy.logfatal('[costmap_network]: Exception %s', str(e.message) + str(e.args))
