@@ -1,0 +1,5 @@
+string detector_name
+string robot_name
+---
+bool ack
+
