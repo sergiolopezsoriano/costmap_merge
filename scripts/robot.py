@@ -56,7 +56,7 @@ class Robot(CostmapNode, Thread):
         Thread.__init__(self)
         super(Robot, self).__init__(namespace, robot_type)
         # Setting the initial pose of the Robot
-        self.pose = get_map_to_odom_transform(self.namespace)
+        self.set_pose(get_map_to_odom_transform(self.namespace))
         # Service for the Detector-Robot communication
         self.robot_communication_service = rospy.Service('robot_communication_service', RobotLocation,
                                                          self.cb_robot_communication)
@@ -100,11 +100,12 @@ class Robot(CostmapNode, Thread):
             self.detectors.append(self.last_detector)
             # Adding subscribers to receive the robots detected by the known detectors
             self.detected_robots_subscribers[self.last_detector] = rospy.Subscriber(
-                '/' + self.last_detector + '/detected_robots_topic', RobotPub, self.cb_add_detected_robot,
+                '/' + self.last_detector + '/detected_robots_topic', RobotPub, self.cb_add_robot_from_detector_topic,
                 queue_size=10)
 
-    def cb_add_detected_robot(self, msg):
-        self.update_robots(msg)
+    def cb_add_robot_from_detector_topic(self, msg):
+        if msg.namespace != self.namespace:
+            self.update_robots(msg)
 
     def update_robots(self, msg):
         self.lock_update_robots.acquire()
@@ -132,7 +133,7 @@ class Detector(Robot):
             rospy.wait_for_service('/' + msg.namespace + '/robot_communication_service')
             self.robot_communication_proxies[msg.namespace] = rospy.ServiceProxy(
                 '/' + msg.namespace + '/robot_communication_service', RobotLocation)
-        rospy.loginfo('[' + str(self.type) + '-' + str(self.namespace) + ']: Talking to ' + str(msg.namespace))
+        # rospy.loginfo('[' + str(self.type) + '-' + str(self.namespace) + ']: Talking to ' + str(msg.namespace))
         response = self.robot_communication_proxies[msg.namespace](self.namespace, self.type, self.pose.pose.position.x,
                                                                    self.pose.pose.position.y,
                                                                    get_yaw_from_orientation(self.pose.pose.orientation),

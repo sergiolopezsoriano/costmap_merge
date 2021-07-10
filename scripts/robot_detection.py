@@ -39,11 +39,11 @@ class RobotDetection:
             if robot != self.namespace:
                 d = math.sqrt((self.robots[robot].x - self.robots[self.namespace].x) ** 2 + (
                             self.robots[robot].y - self.robots[self.namespace].y) ** 2)
-                # rospy.loginfo('[robot_detection]: distance detector ' + str(self.namespace) + '- robot ' + str(
+                # rospy.loginfo('[robot_detection]: distance detector_' + str(self.namespace) + ' - ' + str(
                 #     robot) + ' = ' + str(d))
                 if d < self.min_detector_distance:
                     response = self.robot_detection_proxy(robot)
-                    rospy.loginfo('[robot_detection]: connected = ' + str(response))
+                    # rospy.loginfo('[robot_detection]: connected = ' + str(response))
 
 
 if __name__ == "__main__":

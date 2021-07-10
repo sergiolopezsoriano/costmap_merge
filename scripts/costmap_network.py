@@ -89,11 +89,11 @@ class CostmapNetwork:
             (self.robots[robot_ymax].y - self.robots[robot_ymin].y) / global_costmap.info.resolution) + self.robots[
                                          robot_ymax].roloco_height / 2 + self.robots[robot_ymin].roloco_height / 2
         # Filling the global global costmap with random numbers
-        global_costmap.data = np.random.random_integers(self.occupancy_range, size=(
-                    global_costmap.info.width * global_costmap.info.height)).tolist()
+        # global_costmap.data = np.random.random_integers(self.occupancy_range, size=(
+        #             global_costmap.info.width * global_costmap.info.height)).tolist()
 
         # zero padding
-        # global_costmap.data = np.zeros(int(global_costmap.info.width * global_costmap.info.height)).tolist()
+        global_costmap.data = np.zeros(int(global_costmap.info.width * global_costmap.info.height)).tolist()
 
         # Adding all robots local_costmaps to the merged_global_costmap
         for robot in self.robots:
@@ -157,7 +157,7 @@ class CostmapNetwork:
         self.robots[robot].roloco_height = height2  # max(height1, height2)
 
     def rotate_costmap(self, angle, robot):  # angle in radians
-        a = rospy.get_rostime()
+        # a = rospy.get_rostime()
         resol = self.robots[robot].local_costmap.info.resolution
         width1 = self.robots[robot].local_costmap.info.width
         height1 = self.robots[robot].local_costmap.info.height
@@ -187,7 +187,7 @@ class CostmapNetwork:
             y2.append(y + col * resol)
         index_x = 0
         index_y = 0
-        b = rospy.get_rostime()
+        # b = rospy.get_rostime()
         # rospy.loginfo('[' + str(self.namespace) + '-' + str(robot) + '] b: ' + str(b.secs - a.secs))
         for row in range(height1):
             for col in range(width1):
@@ -204,7 +204,7 @@ class CostmapNetwork:
                         index_y = y1.index(value)
                         break
                 data2[index_x][index_y] = data[row][col]
-        c = rospy.get_rostime()
+        # c = rospy.get_rostime()
         # rospy.loginfo('[' + str(self.namespace) + '-' + str(robot) + '] c: ' + str(c.secs - a.secs))
         for row in range(height2):
             for col in range(width2):
@@ -214,7 +214,7 @@ class CostmapNetwork:
                             col + 1]) / 4
                 except:
                     pass
-        d = rospy.get_rostime()
+        # d = rospy.get_rostime()
         # rospy.loginfo('[' + str(self.namespace) + '-' + str(robot) + '] d: ' + str(d.secs - a.secs))
         data2 = np.reshape(data2, (width2 * height2)).tolist()
         return data2
