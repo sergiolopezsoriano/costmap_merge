@@ -18,13 +18,14 @@ class OdomNode(object):
         self.x = int()
         self.y = int()
         # Flags to prevent publishing before the odometry is received
-        self.local_ready = False
+        self.odom_ready = False
         # Odometry subscriber
         self.odom = Odometry()
         rospy.Subscriber('/' + namespace + '/odom', Odometry, self.cb_odom, queue_size=1)
 
     def cb_odom(self, msg):
         self.odom = msg
+        self.odom_ready = True
 
     def set_pose(self, ps):
         self.pose = ps
@@ -55,7 +56,7 @@ class Robot(CostmapNode, Thread):
         Thread.__init__(self)
         super(Robot, self).__init__(namespace, robot_type)
         # Setting the initial pose of the Robot
-        self.set_pose(get_map_to_odom_transform(self.namespace))
+        self.pose = get_map_to_odom_transform(self.namespace)
         # Service for the Detector-Robot communication
         self.robot_communication_service = rospy.Service('robot_communication_service', RobotLocation,
                                                          self.cb_robot_communication)

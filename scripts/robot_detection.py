@@ -28,26 +28,22 @@ class RobotDetection:
     def detect_robots(self):
         """ AI object identification """
         for robot in self.robots:
+            yaw = cn_lib.get_yaw_from_orientation(self.robots[robot].pose.pose.orientation)
+            self.robots[robot].x = self.robots[robot].pose.pose.position.x + self.robots[
+                robot].odom.pose.pose.position.x * np.cos(yaw) - self.robots[
+                                       robot].odom.pose.pose.position.y * np.sin(yaw)
+            self.robots[robot].y = self.robots[robot].pose.pose.position.y + self.robots[
+                robot].odom.pose.pose.position.y * np.cos(yaw) + self.robots[
+                                       robot].odom.pose.pose.position.x * np.sin(yaw)
+        for robot in self.robots:
             if robot != self.namespace:
-                yaw = cn_lib.get_yaw_from_orientation(self.robots[robot].pose.pose.orientation)
-                self.robots[robot].x = self.robots[robot].pose.pose.position.x + self.robots[
-                    robot].odom.pose.pose.position.x * np.cos(yaw) - self.robots[
-                                           robot].odom.pose.pose.position.y * np.sin(yaw)
-                self.robots[robot].y = self.robots[robot].pose.pose.position.y + self.robots[
-                    robot].odom.pose.pose.position.y * np.cos(yaw) + self.robots[
-                                           robot].odom.pose.pose.position.x * np.sin(yaw)
-
-                d = math.sqrt((self.robots[robot].odom.pose.pose.position.x - self.robots[
-                    self.namespace].odom.pose.pose.position.x + self.robots[robot].pose.pose.position.x - self.robots[
-                                   self.namespace].pose.pose.position.x) ** 2 + (
-                                          self.robots[robot].odom.pose.pose.position.y - self.robots[
-                                      self.namespace].odom.pose.pose.position.y + self.robots[
-                                              robot].pose.pose.position.y - self.robots[
-                                              self.namespace].pose.pose.position.y) ** 2)
-                print(d)
+                d = math.sqrt((self.robots[robot].x - self.robots[self.namespace].x) ** 2 + (
+                            self.robots[robot].y - self.robots[self.namespace].y) ** 2)
+                # rospy.loginfo('[robot_detection]: distance detector ' + str(self.namespace) + '- robot ' + str(
+                #     robot) + ' = ' + str(d))
                 if d < self.min_detector_distance:
                     response = self.robot_detection_proxy(robot)
-                    print(response)
+                    rospy.loginfo('[robot_detection]: connected = ' + str(response))
 
 
 if __name__ == "__main__":
