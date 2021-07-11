@@ -126,6 +126,7 @@ class Detector(Robot):
         # Publisher that shares the last detected robot
         self.detected_robots_publisher = rospy.Publisher('/' + self.namespace + '/detected_robots_topic', RobotPub,
                                                          queue_size=10)
+        self.detected_robots_list = list()
 
     def cb_robot_detection(self, msg):
         """When the AI node detects a robot, it starts the handshake"""
@@ -140,5 +141,8 @@ class Detector(Robot):
                                                                get_yaw_from_orientation(self.pose.pose.orientation),
                                                                self.pose.header.stamp)
         self.update_robots(response)
-        self.detected_robots_publisher.publish(response)
+        if response not in self.detected_robots_list:
+            self.detected_robots_list.append(response)
+        for robot in self.detected_robots_list:
+            self.detected_robots_publisher.publish(robot)
         return RobotDetectedResponse(True)

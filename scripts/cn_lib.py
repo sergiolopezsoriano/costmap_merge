@@ -37,5 +37,5 @@ def get_map_to_odom_transform(namespace):
     pose_tf.pose.orientation.y = orientation[1]
     pose_tf.pose.orientation.z = orientation[2]
     pose_tf.pose.orientation.w = orientation[3]
-    pose_tf.header.stamp = time
+    pose_tf.header.stamp = rospy.Time.now()
     return pose_tf
