@@ -52,6 +52,7 @@ if __name__ == "__main__":
         rospy.init_node('robot_detection', log_level=rospy.INFO)
         rospy.loginfo('[robot_detection]: Node started')
         rd = RobotDetection()
+        rospy.sleep(5)
         while not rospy.is_shutdown():
             rd.detect_robots()
             rospy.sleep(5)

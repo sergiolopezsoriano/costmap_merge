@@ -1,2 +1,2 @@
-min_detector_distance: 2
-robots_names: ['robot1', 'robot2']
+min_detector_distance: 4
+robots_names: ['robot1', 'robot2', 'robot3']

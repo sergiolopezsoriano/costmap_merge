@@ -6,8 +6,8 @@ global_costmap:
    transform_tolerance: 0.5
 #   static_map: true
    rolling_window: true
-   width: 10
-   height: 10
+   width: 50
+   height: 50
    resolution: 0.02
    plugins:
 #      - { name: static_layer,        type: "costmap_2d::StaticLayer" }

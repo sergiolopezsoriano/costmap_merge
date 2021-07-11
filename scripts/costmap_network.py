@@ -5,7 +5,7 @@ import rospy
 from nav_msgs.msg import OccupancyGrid
 import tf
 import numpy as np
-from costmap_merge.srv import RobotLocation, RobotLocationResponse
+from costmap_merge.srv import RobotUpdate, RobotUpdateResponse
 import robot as rb
 import cn_lib
 import math
@@ -17,7 +17,7 @@ class CostmapNetwork:
         self.namespace = rospy.get_namespace().strip('/')
         self.type = rospy.get_param('~robot_type')
         # Server for creating and updating robots
-        self.service = rospy.Service('update_robots', RobotLocation, self.cb_update_robot)
+        self.service = rospy.Service('update_robots', RobotUpdate, self.cb_update_robot)
         # Costmap information
         self.occupancy_range = 100
         # Dictionary for the costmap_network nodes
@@ -30,7 +30,7 @@ class CostmapNetwork:
         self.robots[self.namespace].start()
 
     def cb_update_robot(self, msg):
-        if not (msg.namespace in self.robots):
+        if msg.namespace not in self.robots:
             self.robots[msg.namespace] = rb.CostmapNode(msg.namespace, msg.type)
         self.robots[msg.namespace].pose.header.frame_id = str(msg.namespace) + '/odom'
         self.robots[msg.namespace].pose.header.stamp = msg.ts
@@ -41,7 +41,7 @@ class CostmapNetwork:
         self.robots[msg.namespace].pose.pose.orientation.y = quaternion[1]
         self.robots[msg.namespace].pose.pose.orientation.z = quaternion[2]
         self.robots[msg.namespace].pose.pose.orientation.w = quaternion[3]
-        return RobotLocationResponse(msg.namespace, msg.type, msg.x, msg.y, msg.yaw, msg.ts)
+        return RobotUpdateResponse(True)
 
     def build_global_costmap(self):
         # Building the merged_global_costmap area

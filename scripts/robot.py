@@ -4,7 +4,8 @@ import rospy
 from nav_msgs.msg import OccupancyGrid, Odometry
 from cn_lib import get_yaw_from_orientation, get_map_to_odom_transform
 from geometry_msgs.msg import PoseStamped
-from costmap_merge.srv import RobotLocation, RobotLocationResponse, RobotDetected, RobotDetectedResponse
+from costmap_merge.srv import RobotDetected, RobotDetectedResponse, RobotHandshake, RobotHandshakeResponse
+from costmap_merge.srv import RobotUpdate, RobotUpdateResponse
 from costmap_merge.msg import RobotPub
 from threading import Thread, Lock
 
@@ -57,12 +58,12 @@ class Robot(CostmapNode, Thread):
         super(Robot, self).__init__(namespace, robot_type)
         # Setting the initial pose of the Robot
         self.set_pose(get_map_to_odom_transform(self.namespace))
-        # Service for the Detector-Robot communication
-        self.robot_communication_service = rospy.Service('robot_communication_service', RobotLocation,
-                                                         self.cb_robot_communication)
+        # Service for the Detector-Robot handshake
+        self.robot_handshake_service = rospy.Service('robot_handshake_service', RobotHandshake,
+                                                         self.cb_robot_handshake)
         # Proxy to update costmap_network robots
         rospy.wait_for_service('/' + self.namespace + '/update_robots')
-        self.update_robots_proxy = rospy.ServiceProxy('/' + self.namespace + '/update_robots', RobotLocation)
+        self.update_robots_proxy = rospy.ServiceProxy('/' + self.namespace + '/update_robots', RobotUpdate)
         # Lock to avoid concurrent calls with the update_robots_proxy
         self.lock_update_robots = Lock()
         # Costmap Publishers
@@ -84,7 +85,7 @@ class Robot(CostmapNode, Thread):
             self.global_publisher.publish(self.merged_global_costmap)
             self.local_publisher.publish(self.local_costmap)
 
-    def cb_robot_communication(self, msg):
+    def cb_robot_handshake(self, msg):
         # rospy.loginfo('[' + str(self.type) + '-' + str(self.namespace) + ']: Detector-' + str(msg.namespace) + ' calling')
         # Creating or updating robots in the costmap_network
         self.update_robots(msg)
@@ -92,8 +93,8 @@ class Robot(CostmapNode, Thread):
         self.last_detector = msg.namespace
         self.add_detector()
         # Replying to the locator
-        return RobotLocationResponse(self.namespace, self.type, self.pose.pose.position.x, self.pose.pose.position.y,
-                                     get_yaw_from_orientation(self.pose.pose.orientation), self.pose.header.stamp)
+        return RobotHandshakeResponse(self.namespace, self.type, self.pose.pose.position.x, self.pose.pose.position.y,
+                                      get_yaw_from_orientation(self.pose.pose.orientation), self.pose.header.stamp)
 
     def add_detector(self):
         if self.last_detector not in self.detectors and self.last_detector != '':
@@ -118,8 +119,8 @@ class Robot(CostmapNode, Thread):
 class Detector(Robot):
     def __init__(self, namespace, robot_type):
         super(Detector, self).__init__(namespace, robot_type)
-        # Iinitializes the proxies dictionary for the robot communication
-        self.robot_communication_proxies = dict()
+        # Iinitializes the proxies dictionary for the robot handshake
+        self.robot_handshake_proxies = dict()
         # Service receiving the detected robot's name
         self.robot_detection_service = rospy.Service('robot_detection_service', RobotDetected, self.cb_robot_detection)
         # Publisher that shares the last detected robot
@@ -127,17 +128,17 @@ class Detector(Robot):
                                                          queue_size=10)
 
     def cb_robot_detection(self, msg):
-        """When the AI node detects a robot, it starts the communication"""
-        # Adding a proxy for communication with the detected robot
-        if msg.namespace not in self.robot_communication_proxies:
-            rospy.wait_for_service('/' + msg.namespace + '/robot_communication_service')
-            self.robot_communication_proxies[msg.namespace] = rospy.ServiceProxy(
-                '/' + msg.namespace + '/robot_communication_service', RobotLocation)
+        """When the AI node detects a robot, it starts the handshake"""
+        # Adding a proxy for handshake with the detected robot
+        if msg.namespace not in self.robot_handshake_proxies:
+            rospy.wait_for_service('/' + msg.namespace + '/robot_handshake_service')
+            self.robot_handshake_proxies[msg.namespace] = rospy.ServiceProxy(
+                '/' + msg.namespace + '/robot_handshake_service', RobotHandshake)
         # rospy.loginfo('[' + str(self.type) + '-' + str(self.namespace) + ']: Talking to ' + str(msg.namespace))
-        response = self.robot_communication_proxies[msg.namespace](self.namespace, self.type, self.pose.pose.position.x,
-                                                                   self.pose.pose.position.y,
-                                                                   get_yaw_from_orientation(self.pose.pose.orientation),
-                                                                   self.pose.header.stamp)
+        response = self.robot_handshake_proxies[msg.namespace](self.namespace, self.type, self.pose.pose.position.x,
+                                                               self.pose.pose.position.y,
+                                                               get_yaw_from_orientation(self.pose.pose.orientation),
+                                                               self.pose.header.stamp)
         self.update_robots(response)
         self.detected_robots_publisher.publish(response)
         return RobotDetectedResponse(True)

@@ -57,7 +57,8 @@ add_message_files(
 add_service_files(
   FILES
   RobotDetected.srv
-  RobotLocation.srv
+  RobotHandshake.srv
+  RobotUpdate.srv
 )
 
 ## Generate actions in the 'action' folder
