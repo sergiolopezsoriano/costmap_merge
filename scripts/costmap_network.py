@@ -109,7 +109,7 @@ class CostmapNetwork:
                 robot_ymin].roloco_height / 2 * global_costmap.info.resolution
             return global_costmap
         except:
-            pass
+            return OccupancyGrid()
 
     def add_costmap(self, robot, global_costmap, robot_xmin, robot_ymin):
         # Taking into account the starting angle
