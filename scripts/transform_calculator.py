@@ -9,7 +9,7 @@ from helpers import TransformHelper
 import numpy as np
 
 
-class RobotDetection:
+class TransformCalculator:
     def __init__(self):
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')

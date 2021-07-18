@@ -7,7 +7,7 @@ import tf
 import numpy as np
 from costmap_merge.srv import RobotUpdate, RobotUpdateResponse
 import robot as rb
-import cn_lib
+from helpers import TransformHelper
 import math
 
 
@@ -58,7 +58,7 @@ class CostmapNetwork:
             for robot in self.robots:
                 while not self.robots[robot].local_ready:
                     rospy.sleep(1)
-                yaw = cn_lib.get_yaw_from_orientation(self.robots[robot].pose.pose.orientation)
+                yaw = TransformHelper.get_yaw_from_orientation(self.robots[robot].pose.pose.orientation)
                 self.calculate_costmap_size(yaw, robot)
                 self.robots[robot].x = self.robots[robot].pose.pose.position.x + self.robots[
                     robot].odom.pose.pose.position.x * np.cos(yaw) - self.robots[
@@ -113,7 +113,7 @@ class CostmapNetwork:
 
     def add_costmap(self, robot, global_costmap, robot_xmin, robot_ymin):
         # Taking into account the starting angle
-        yaw = cn_lib.get_yaw_from_orientation(self.robots[robot].pose.pose.orientation)
+        yaw = TransformHelper.get_yaw_from_orientation(self.robots[robot].pose.pose.orientation)
         data = self.rotate_costmap(yaw, robot)
         pos_x = int((self.robots[robot].pose.pose.position.x + self.robots[robot].odom.pose.pose.position.x * np.cos(
             yaw) - self.robots[robot].odom.pose.pose.position.y * np.sin(yaw) - self.robots[
@@ -195,7 +195,7 @@ class CostmapNetwork:
         for row in range(height1):
             for col in range(width1):
                 point1 = [xo1 + row * resol, yo1 + col * resol]
-                point2 = cn_lib.rotate(origin, point1, angle)
+                point2 = TransformHelper.rotate(origin, point1, angle)
                 # index_x = list(filter(lambda i: i > point2[0], x1))[0]
                 # index_y = list(filter(lambda i: i > point2[1], y1))[0]
                 for value in x1:

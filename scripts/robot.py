@@ -2,7 +2,7 @@
 
 import rospy
 from nav_msgs.msg import OccupancyGrid, Odometry
-from cn_lib import get_yaw_from_orientation, get_map_to_odom_transform
+from helpers import PoseHelper, TransformHelper
 from geometry_msgs.msg import PoseStamped
 from costmap_merge.srv import RobotDetected, RobotDetectedResponse, RobotHandshake, RobotHandshakeResponse
 from costmap_merge.srv import RobotUpdate, RobotUpdateResponse
@@ -57,7 +57,7 @@ class Robot(CostmapNode, Thread):
         Thread.__init__(self)
         super(Robot, self).__init__(namespace, robot_type)
         # Setting the initial pose of the Robot
-        self.set_pose(get_map_to_odom_transform(self.namespace))
+        self.set_pose(TransformHelper.get_map_to_odom_transform(self.namespace))
         # Service for the Detector-Robot handshake
         self.robot_handshake_service = rospy.Service('robot_handshake_service', RobotHandshake,
                                                          self.cb_robot_handshake)
@@ -94,7 +94,7 @@ class Robot(CostmapNode, Thread):
         self.add_detector()
         # Replying to the locator
         return RobotHandshakeResponse(self.namespace, self.type, self.pose.pose.position.x, self.pose.pose.position.y,
-                                      get_yaw_from_orientation(self.pose.pose.orientation), self.pose.header.stamp)
+                                      PoseHelper.get_yaw_from_orientation(self.pose.pose.orientation), self.pose.header.stamp)
 
     def add_detector(self):
         if self.last_detector not in self.detectors and self.last_detector != '':
@@ -135,12 +135,12 @@ class Detector(Robot):
             rospy.wait_for_service('/' + msg.namespace + '/robot_handshake_service')
             self.robot_handshake_proxies[msg.namespace] = rospy.ServiceProxy(
                 '/' + msg.namespace + '/robot_handshake_service', RobotHandshake)
-        # rospy.loginfo('[' + str(self.type) + '-' + str(self.namespace) + ']: Talking to ' + str(msg.namespace))
-        response = self.robot_handshake_proxies[msg.namespace](self.namespace, self.type, self.pose.pose.position.x,
-                                                               self.pose.pose.position.y,
-                                                               get_yaw_from_orientation(self.pose.pose.orientation),
-                                                               self.pose.header.stamp)
-        self.update_robots(response)
+        pose = PoseHelper.get_2D_pose(self.namespace, self.odom.pose.pose.position.x, self.odom.pose.pose.position.y,
+                                      self.odom.pose.pose.position.z,
+                                      PoseHelper.get_yaw_from_orientation(self.odom.pose.pose.orientation),
+                                      self.odom.pose.header.stamp)
+        response = self.robot_handshake_proxies[msg.namespace](self.namespace, pose)
+        self.update_robots(pose)
         if response not in self.detected_robots_list:
             self.detected_robots_list.append(response)
         for robot in self.detected_robots_list:
