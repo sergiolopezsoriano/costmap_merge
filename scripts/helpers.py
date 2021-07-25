@@ -2,40 +2,48 @@
 
 import rospy
 import tf
-import tf2_ros
-from geometry_msgs.msg import PoseStamped, TransformStamped
+from tf2_ros import TransformBroadcaster
+from geometry_msgs.msg import PoseStamped, TransformStamped, Quaternion
 import math
 
 
 class TransformHelper:
 
     def __init__(self):
-        self.br = tf2_ros.TransformBroadcaster()
+        self.br = TransformBroadcaster()
 
     def publish_transform(self, transform):
         self.br.sendTransform(transform)
 
     @staticmethod
-    def get_frame_tf(pose1, pose2, alpha, beta):
+    def get_pose_transform(pose_D_D, pose_R_D, pose_R_R, alpha, beta):
         gamma = math.pi + alpha - beta
-        yaw11 = TransformHelper.get_yaw_from_orientation(pose1.pose.orientation)
-        yaw22 = TransformHelper.get_yaw_from_orientation(pose2.pose.orientation)
-        yaw21 = yaw22 - gamma
-        yaw12 = yaw11 - gamma
-
+        yaw_D_D = PoseHelper.get_yaw_from_orientation(pose_D_D.pose.orientation)
+        yaw_R_R = PoseHelper.get_yaw_from_orientation(pose_R_R.pose.orientation)
+        yaw_R_D = yaw_R_R + gamma
+        rotation = yaw_R_D - yaw_D_D
         t = TransformStamped()
         t.header.stamp = rospy.Time.now()
-        t.header.frame_id = pose1.header.frame_id  # '/map'
-        t.child_frame_id = pose2.header.frame_id
-        t.transform.translation.x = pose2.pose.position.x - pose1.pose.position.x
-        t.transform.translation.y = pose2.pose.position.y - pose1.pose.position.y
+        t.header.frame_id = pose_D_D.header.frame_id  # '/map'
+        t.child_frame_id = pose_R_D.header.frame_id
+        t.transform.translation.x = pose_R_D.pose.position.x - pose_D_D.pose.position.x
+        t.transform.translation.y = pose_R_D.pose.position.y - pose_D_D.pose.position.y
         t.transform.translation.z = 0.0
-        q = tf.transformations.quaternion_from_euler(0, 0, yaw2 - yaw1)
-        t.transform.rotation.x = q[0]
-        t.transform.rotation.y = q[1]
-        t.transform.rotation.z = q[2]
-        t.transform.rotation.w = q[3]
-        return t, orientation
+        t.transform.rotation = PoseHelper.get_orientation_from_yaw(rotation)
+        return t, pose_R_D
+
+    @staticmethod
+    def get_frame_transform(pose_D_D, pose_R_D, pose_R_R, alpha, beta):
+        gamma = math.pi + alpha - beta
+        t = TransformStamped()
+        t.header.stamp = rospy.Time.now()
+        t.header.frame_id = pose_D_D.header.frame_id  # '/map'
+        t.child_frame_id = pose_R_D.header.frame_id
+        t.transform.translation.x = pose_R_D.pose.position.x - pose_R_R.pose.position.x
+        t.transform.translation.y = pose_R_D.pose.position.y - pose_R_R.pose.position.y
+        t.transform.translation.z = 0.0
+        t.transform.rotation = PoseHelper.get_orientation_from_yaw(gamma)
+        return t
 
     @staticmethod
     def get_map_to_odom_transform(namespace):
@@ -64,30 +72,40 @@ class PoseHelper:
         return tf.transformations.euler_from_quaternion([orientation.x, orientation.y, orientation.z, orientation.w])[2]
 
     @staticmethod
+    def get_orientation_from_yaw(yaw):
+        orientation = Quaternion
+        quaternion = tf.transformations.quaternion_from_euler(0, 0, yaw)
+        orientation.x = quaternion[0]
+        orientation.y = quaternion[1]
+        orientation.z = quaternion[2]
+        orientation.w = quaternion[3]
+        return orientation
+    
+    @staticmethod
     def rotate(origin, point, angle):
         """
         Rotate a point counterclockwise by a given angle around a given origin.
-
         The angle should be given in radians.
         """
         ox, oy = origin
         px, py = point
-
         qx = ox + math.cos(angle) * (px - ox) + math.sin(angle) * (py - oy)
         qy = oy - math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
         return qx, qy
 
-    @staticmethod
-    def get_2D_pose(namespace, x, y, z, yaw, ts):
+    def get_2D_pose(self, namespace, x, y, z, yaw, ts):
         pose = PoseStamped()
         pose.header.frame_id = namespace + '/odom'
         pose.header.stamp = ts
         pose.pose.position.x = x
         pose.pose.position.y = y
         pose.pose.position.z = z
-        quaternion = tf.transformations.quaternion_from_euler(0, 0, yaw)
-        pose.pose.orientation.x = quaternion[0]
-        pose.pose.orientation.y = quaternion[1]
-        pose.pose.orientation.z = quaternion[2]
-        pose.pose.orientation.w = quaternion[3]
+        pose.pose.orientation = self.get_orientation_from_yaw(yaw)
+        return pose
+
+    @staticmethod
+    def get_pose_from_odom(self, odom):
+        pose = PoseStamped()
+        pose.header = odom.header
+        pose.pose = odom.pose.pose
         return pose

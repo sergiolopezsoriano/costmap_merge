@@ -1,0 +1,3 @@
+string namespace
+string type
+geometry_msgs/PoseStamped robot_pose

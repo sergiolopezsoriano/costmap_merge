@@ -1,4 +1,6 @@
 string namespace
+geometry_msgs/PoseStamped pose_R_D
+float64 alpha
 ---
 bool ack
 

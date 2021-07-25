@@ -5,7 +5,7 @@ import traceback
 import robot as rb
 import math
 from costmap_merge.srv import RobotDetected, RobotDetectedResponse
-from helpers import TransformHelper
+from helpers import TransformHelper, PoseHelper
 import numpy as np
 
 
@@ -42,7 +42,10 @@ class RobotDetection:
                 # rospy.loginfo('[robot_detection]: distance detector_' + str(self.namespace) + ' - ' + str(
                 #     robot) + ' = ' + str(d))
                 if d < self.min_detector_distance:
-                    response = self.robot_detection_proxy(robot)
+                    pose = PoseHelper.get_pose_from_odom(self.robots[robot].odom)
+                    alpha = math.atan2((self.robots[robot].y - self.robots[self.namespace].y) / (
+                                self.robots[robot].x - self.robots[self.namespace].x))
+                    response = self.robot_detection_proxy(robot, pose, alpha)
                     # rospy.loginfo('[robot_detection]: connected = ' + str(response))
 
 

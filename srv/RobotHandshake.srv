@@ -1,8 +1,11 @@
 string namespace
-PoseStamped detector_pose
-PoseStamped robot_pose
+string type
+geometry_msgs/PoseStamped pose_D_D
+geometry_msgs/PoseStamped pose_R_D
 float64 alpha
 ---
 string namespace
-TransformStamped transform_stamped
+string type
+geometry_msgs/PoseStamped pose_R_D
+geometry_msgs/TransformStamped transform_stamped
 

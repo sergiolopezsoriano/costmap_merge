@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  geometry_msgs
   message_generation
 )
 
@@ -50,7 +51,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  RobotPub.msg
+  RobotInfo.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -58,7 +59,7 @@ add_service_files(
   FILES
   RobotDetected.srv
   RobotHandshake.srv
-  RobotUpdate.srv
+  RobotUpdateInfo.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -72,6 +73,7 @@ add_service_files(
 generate_messages(
   DEPENDENCIES
   std_msgs
+  geometry_msgs
 )
 
 ################################################

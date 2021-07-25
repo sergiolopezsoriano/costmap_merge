@@ -1,5 +1,5 @@
 string namespace
 string type
-Pose pose
+geometry_msgs/PoseStamped robot_pose
 ---
 bool ack

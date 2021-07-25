@@ -5,9 +5,10 @@ from nav_msgs.msg import OccupancyGrid, Odometry
 from helpers import PoseHelper, TransformHelper
 from geometry_msgs.msg import PoseStamped
 from costmap_merge.srv import RobotDetected, RobotDetectedResponse, RobotHandshake, RobotHandshakeResponse
-from costmap_merge.srv import RobotUpdate, RobotUpdateResponse
-from costmap_merge.msg import RobotPub
+from costmap_merge.srv import RobotUpdateInfo
+from costmap_merge.msg import RobotInfo
 from threading import Thread, Lock
+import math
 
 
 class OdomNode(object):
@@ -26,7 +27,8 @@ class OdomNode(object):
 
     def cb_odom(self, msg):
         self.odom = msg
-        self.odom_ready = True
+        if not self.odom_ready:
+            self.odom_ready = True
 
     def set_pose(self, ps):
         self.pose = ps
@@ -63,7 +65,7 @@ class Robot(CostmapNode, Thread):
                                                          self.cb_robot_handshake)
         # Proxy to update costmap_network robots
         rospy.wait_for_service('/' + self.namespace + '/update_robots')
-        self.update_robots_proxy = rospy.ServiceProxy('/' + self.namespace + '/update_robots', RobotUpdate)
+        self.update_robots_proxy = rospy.ServiceProxy('/' + self.namespace + '/update_robots', RobotUpdateInfo)
         # Lock to avoid concurrent calls with the update_robots_proxy
         self.lock_update_robots = Lock()
         # Costmap Publishers
@@ -88,20 +90,26 @@ class Robot(CostmapNode, Thread):
     def cb_robot_handshake(self, msg):
         # rospy.loginfo('[' + str(self.type) + '-' + str(self.namespace) + ']: Detector-' + str(msg.namespace) + ' calling')
         # Creating or updating robots in the costmap_network
-        self.update_robots(msg)
+        self.update_robots(msg.namespace, msg.type, pose_D_R) # TODO: no tengo pose_D_R todavía, pasar esto al final del método
         # Adding detector
         self.last_detector = msg.namespace
         self.add_detector()
+        # Calculating pose transforms
+        pose_R_R = PoseHelper.get_pose_from_odom(self.odom)
+        beta = math.atan2((self.robots[robot].y - self.robots[self.namespace].y) / (
+                    self.robots[robot].x - self.robots[self.namespace].x))
         # Replying to the locator
+        transform = TransformHelper.get_pose_transform(msg.pose_D_D, msg.pose_R_D, pose_R_R, msg.alpha, beta)
         return RobotHandshakeResponse(self.namespace, self.type, self.pose.pose.position.x, self.pose.pose.position.y,
-                                      PoseHelper.get_yaw_from_orientation(self.pose.pose.orientation), self.pose.header.stamp)
+                                      PoseHelper.get_yaw_from_orientation(self.pose.pose.orientation),
+                                      self.pose.header.stamp)
 
     def add_detector(self):
         if self.last_detector not in self.detectors and self.last_detector != '':
             self.detectors.append(self.last_detector)
             # Adding subscribers to receive the robots detected by the known detectors
             self.detected_robots_subscribers[self.last_detector] = rospy.Subscriber(
-                '/' + self.last_detector + '/detected_robots_topic', RobotPub, self.cb_add_robot_from_detector_topic,
+                '/' + self.last_detector + '/detected_robots_topic', RobotInfo, self.cb_add_robot_from_detector_topic,
                 queue_size=10)
 
     def cb_add_robot_from_detector_topic(self, msg):
@@ -111,7 +119,7 @@ class Robot(CostmapNode, Thread):
     def update_robots(self, msg):
         self.lock_update_robots.acquire()
         try:
-            self.update_robots_proxy(msg.namespace, msg.type, msg.x, msg.y, msg.yaw, msg.ts)
+            self.update_robots_proxy(msg.namespace, msg.type, msg.robot_pose)
         finally:
             self.lock_update_robots.release()
 
@@ -124,7 +132,7 @@ class Detector(Robot):
         # Service receiving the detected robot's name
         self.robot_detection_service = rospy.Service('robot_detection_service', RobotDetected, self.cb_robot_detection)
         # Publisher that shares the last detected robot
-        self.detected_robots_publisher = rospy.Publisher('/' + self.namespace + '/detected_robots_topic', RobotPub,
+        self.detected_robots_publisher = rospy.Publisher('/' + self.namespace + '/detected_robots_topic', RobotInfo,
                                                          queue_size=10)
         self.detected_robots_list = list()
 
@@ -135,12 +143,10 @@ class Detector(Robot):
             rospy.wait_for_service('/' + msg.namespace + '/robot_handshake_service')
             self.robot_handshake_proxies[msg.namespace] = rospy.ServiceProxy(
                 '/' + msg.namespace + '/robot_handshake_service', RobotHandshake)
-        pose = PoseHelper.get_2D_pose(self.namespace, self.odom.pose.pose.position.x, self.odom.pose.pose.position.y,
-                                      self.odom.pose.pose.position.z,
-                                      PoseHelper.get_yaw_from_orientation(self.odom.pose.pose.orientation),
-                                      self.odom.pose.header.stamp)
-        response = self.robot_handshake_proxies[msg.namespace](self.namespace, pose)
-        self.update_robots(pose)
+        pose_D_D = PoseHelper.get_pose_from_odom(self.odom)
+        response = self.robot_handshake_proxies[msg.namespace](self.namespace, self.type, pose_D_D, msg.pose_R_D,
+                                                               msg.alpha)
+        self.update_robots(response.namespace, response.type, response.pose_R_D)
         if response not in self.detected_robots_list:
             self.detected_robots_list.append(response)
         for robot in self.detected_robots_list:
