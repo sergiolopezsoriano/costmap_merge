@@ -1,4 +1,5 @@
-string namespace
+string detector_ns
+geometry_msgs/PoseStamped pose_D_D
 geometry_msgs/PoseStamped pose_R_D
 float64 alpha
 ---

@@ -4,30 +4,26 @@ import rospy
 import traceback
 import robot as rb
 import math
-from costmap_merge.srv import RobotDetected, RobotDetectedResponse
-from helpers import TransformHelper
+from costmap_merge.srv import Transforms
+from helpers import TransformHelper, PoseHelper
 import numpy as np
 
 
-class TransformCalculator:
+class DetectorFinder:
     def __init__(self):
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')
         self.robots_names = rospy.get_param('~robots_names')
-        self.min_detector_distance = rospy.get_param('~min_detector_distance')
         # OdomNode dictionary of all the simulated robots
         self.robots = dict()
         for namespace in self.robots_names:
             self.robots[namespace] = rb.OdomNode(namespace)
             self.robots[namespace].pose = TransformHelper.get_map_to_odom_transform(namespace)
-        # Iinitializes the proxy for the robot_detection service
-        rospy.wait_for_service('/' + self.namespace + '/robot_detection_service')
-        self.robot_detection_proxy = rospy.ServiceProxy('/' + self.namespace + '/robot_detection_service',
-                                                        RobotDetected)
+        # Service to send the pose and frame transforms
+        self.detector_finder_service = rospy.Service('detector_finder_service', Transforms, self.cb_detector_finder)
 
-    def detect_robots(self):
-        """ AI object identification """
-        for robot in self.robots:
+    def cb_detector_finder(self, msg):
+        for robot in [self.namespace, msg.namespace]:
             yaw = TransformHelper.get_yaw_from_orientation(self.robots[robot].pose.pose.orientation)
             self.robots[robot].x = self.robots[robot].pose.pose.position.x + self.robots[
                 robot].odom.pose.pose.position.x * np.cos(yaw) - self.robots[
@@ -35,23 +31,22 @@ class TransformCalculator:
             self.robots[robot].y = self.robots[robot].pose.pose.position.y + self.robots[
                 robot].odom.pose.pose.position.y * np.cos(yaw) + self.robots[
                                        robot].odom.pose.pose.position.x * np.sin(yaw)
-        for robot in self.robots:
-            if robot != self.namespace:
-                d = math.sqrt((self.robots[robot].x - self.robots[self.namespace].x) ** 2 + (
-                            self.robots[robot].y - self.robots[self.namespace].y) ** 2)
-                # rospy.loginfo('[robot_detection]: distance detector_' + str(self.namespace) + ' - ' + str(
-                #     robot) + ' = ' + str(d))
-                if d < self.min_detector_distance:
-                    response = self.robot_detection_proxy(robot)
-                    # rospy.loginfo('[robot_detection]: connected = ' + str(response))
+        pose_D_R = self.find_detector_in_costmap(msg.namespace)
+        pose_R_R = PoseHelper.get_pose_from_odom(self.odom)
+        beta = math.atan2((self.robots[msg.namespace].y - self.robots[self.namespace].y) / (
+                    self.robots[msg.namespace].x - self.robots[self.namespace].x))
+        return
 
+    def find_detector_in_costmap(self, namespace):
+        pose_D_R = PoseHelper.get_pose_from_odom(self.robots[namespace].odom)
+        return pose_D_R
 
 if __name__ == "__main__":
 
     try:
-        rospy.init_node('robot_detection', log_level=rospy.INFO)
-        rospy.loginfo('[robot_detection]: Node started')
-        rd = RobotDetection()
+        rospy.init_node('detector_finder', log_level=rospy.INFO)
+        rospy.loginfo('[detector_finder]: Node started')
+        rd = DetectorFinder()
         rospy.sleep(5)
         while not rospy.is_shutdown():
             rd.detect_robots()

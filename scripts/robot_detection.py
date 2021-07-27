@@ -13,6 +13,7 @@ class RobotDetection:
     def __init__(self):
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')
+        self.type = rospy.get_param('~robot_type')
         self.robots_names = rospy.get_param('~robots_names')
         self.min_detector_distance = rospy.get_param('~min_detector_distance')
         # OdomNode dictionary of all the simulated robots
@@ -26,7 +27,7 @@ class RobotDetection:
                                                         RobotDetected)
 
     def detect_robots(self):
-        """ AI object identification """
+        """ AI robot identification must provide pose_D_D, pose_R_D and alpha """
         for robot in self.robots:
             yaw = TransformHelper.get_yaw_from_orientation(self.robots[robot].pose.pose.orientation)
             self.robots[robot].x = self.robots[robot].pose.pose.position.x + self.robots[
@@ -42,10 +43,11 @@ class RobotDetection:
                 # rospy.loginfo('[robot_detection]: distance detector_' + str(self.namespace) + ' - ' + str(
                 #     robot) + ' = ' + str(d))
                 if d < self.min_detector_distance:
-                    pose = PoseHelper.get_pose_from_odom(self.robots[robot].odom)
+                    pose_D_D = PoseHelper.get_pose_from_odom(self.robots[self.namespace].odom)
+                    pose_R_D = PoseHelper.get_pose_from_odom(self.robots[robot].odom)
                     alpha = math.atan2((self.robots[robot].y - self.robots[self.namespace].y) / (
                                 self.robots[robot].x - self.robots[self.namespace].x))
-                    response = self.robot_detection_proxy(robot, pose, alpha)
+                    response = self.robot_detection_proxy(robot, pose_D_D, pose_R_D, alpha)
                     # rospy.loginfo('[robot_detection]: connected = ' + str(response))
 
 

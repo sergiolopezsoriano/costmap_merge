@@ -60,6 +60,8 @@ class Robot(CostmapNode, Thread):
         super(Robot, self).__init__(namespace, robot_type)
         # Setting the initial pose of the Robot
         self.set_pose(TransformHelper.get_map_to_odom_transform(self.namespace))
+        # Iinitializes the proxies dictionary for the robot handshake
+        self.detector_finder_proxies = dict()
         # Service for the Detector-Robot handshake
         self.robot_handshake_service = rospy.Service('robot_handshake_service', RobotHandshake,
                                                          self.cb_robot_handshake)
@@ -89,20 +91,22 @@ class Robot(CostmapNode, Thread):
 
     def cb_robot_handshake(self, msg):
         # rospy.loginfo('[' + str(self.type) + '-' + str(self.namespace) + ']: Detector-' + str(msg.namespace) + ' calling')
+        # Looking for the Detector in the costmap and calculating poses/transforms.
+        # Adding a proxy for handshake with the detected robot
+        if msg.namespace not in self.robot_handshake_proxies:
+            rospy.wait_for_service('/' + msg.namespace + '/robot_handshake_service')
+            self.robot_handshake_proxies[msg.namespace] = rospy.ServiceProxy(
+                '/' + msg.namespace + '/robot_handshake_service', RobotHandshake)
+        response = self.robot_handshake_proxies[msg.namespace](self.namespace, self.type, msg.pose_D_D, msg.pose_R_D,
+                                                               msg.alpha)
         # Creating or updating robots in the costmap_network
-        self.update_robots(msg.namespace, msg.type, pose_D_R) # TODO: no tengo pose_D_R todavía, pasar esto al final del método
+        self.update_robots(msg.namespace, msg.type, pose_D_R)
         # Adding detector
         self.last_detector = msg.namespace
         self.add_detector()
-        # Calculating pose transforms
-        pose_R_R = PoseHelper.get_pose_from_odom(self.odom)
-        beta = math.atan2((self.robots[robot].y - self.robots[self.namespace].y) / (
-                    self.robots[robot].x - self.robots[self.namespace].x))
-        # Replying to the locator
-        transform = TransformHelper.get_pose_transform(msg.pose_D_D, msg.pose_R_D, pose_R_R, msg.alpha, beta)
-        return RobotHandshakeResponse(self.namespace, self.type, self.pose.pose.position.x, self.pose.pose.position.y,
-                                      PoseHelper.get_yaw_from_orientation(self.pose.pose.orientation),
-                                      self.pose.header.stamp)
+        # Responding to the locator
+
+        return RobotHandshakeResponse(self.namespace, self.type, pose_R_D, pose_transform, frame_transform)
 
     def add_detector(self):
         if self.last_detector not in self.detectors and self.last_detector != '':
@@ -143,9 +147,7 @@ class Detector(Robot):
             rospy.wait_for_service('/' + msg.namespace + '/robot_handshake_service')
             self.robot_handshake_proxies[msg.namespace] = rospy.ServiceProxy(
                 '/' + msg.namespace + '/robot_handshake_service', RobotHandshake)
-        pose_D_D = PoseHelper.get_pose_from_odom(self.odom)
-        response = self.robot_handshake_proxies[msg.namespace](self.namespace, self.type, pose_D_D, msg.pose_R_D,
-                                                               msg.alpha)
+        response = self.robot_handshake_proxies[msg.namespace](self.namespace, msg.pose_D_D, msg.pose_R_D, msg.alpha)
         self.update_robots(response.namespace, response.type, response.pose_R_D)
         if response not in self.detected_robots_list:
             self.detected_robots_list.append(response)
