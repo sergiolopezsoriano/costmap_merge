@@ -4,21 +4,18 @@ import rospy
 from nav_msgs.msg import OccupancyGrid, Odometry
 from helpers import PoseHelper, TransformHelper
 from geometry_msgs.msg import PoseStamped
-from costmap_merge.srv import RobotDetected, RobotDetectedResponse, RobotHandshake, RobotHandshakeResponse
 from costmap_merge.srv import RobotUpdateInfo
 from costmap_merge.msg import RobotInfo
 from threading import Thread, Lock
-import math
 
 
 class OdomNode(object):
     def __init__(self, namespace):
         self.namespace = namespace
-        # Initial pose
-        self.pose = PoseStamped()
-        # Rotated coordinates
-        self.x = int()
-        self.y = int()
+        # Starting relative pose to the map TODO: apply changes for real operation
+        self.start = TransformHelper.get_map_to_odom_transform(self.namespace)
+        # Odom pose in the /map frame
+        self.transformed = PoseStamped()
         # Flags to prevent publishing before the odometry is received
         self.odom_ready = False
         # Odometry subscriber
@@ -30,8 +27,13 @@ class OdomNode(object):
         if not self.odom_ready:
             self.odom_ready = True
 
-    def set_pose(self, ps):
-        self.pose = ps
+    def set_transformed(self, frame_id, x, y, yaw):
+        self.transformed.header.frame_id = frame_id
+        self.transformed.header.stamp = rospy.Time.now()
+        self.transformed.pose.position.x = x
+        self.transformed.pose.position.y = y
+        self.transformed.pose.position.z = 0
+        self.transformed.pose.orientation = PoseHelper.get_orientation_from_yaw(yaw)
 
 
 class CostmapNode(OdomNode):
@@ -50,8 +52,8 @@ class CostmapNode(OdomNode):
         rospy.Subscriber('/' + self.namespace + '/local_costmap', OccupancyGrid, self.cb_local_costmap, queue_size=1)
 
     def cb_local_costmap(self, msg):
-        self.local_ready = True
         self.local_costmap = msg
+        self.local_ready = True
 
 
 class Robot(CostmapNode, Thread):

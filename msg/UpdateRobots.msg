@@ -1,0 +1,3 @@
+string origin
+string destination
+geometry_msgs/PoseStamped pose

@@ -62,15 +62,16 @@ class TransformHelper:
         time = rospy.Time(0)
         tl = tf.TransformListener()
         tl.waitForTransform('/map', '/' + namespace + '_tf/odom', time, rospy.Duration(1.0))
-        (position, orientation) = tl.lookupTransform('/map', '/' + namespace + '_tf/odom', time)
-        pose_tf.pose.position.x = position[0]
-        pose_tf.pose.position.y = position[1]
-        pose_tf.pose.position.z = position[2]
-        pose_tf.pose.orientation.x = orientation[0]
-        pose_tf.pose.orientation.y = orientation[1]
-        pose_tf.pose.orientation.z = orientation[2]
-        pose_tf.pose.orientation.w = orientation[3]
+        (translation, rotation) = tl.lookupTransform('/map', '/' + namespace + '_tf/odom', time)
+        pose_tf.pose.position.x = translation[0]
+        pose_tf.pose.position.y = translation[1]
+        pose_tf.pose.position.z = translation[2]
+        pose_tf.pose.orientation.x = rotation[0]
+        pose_tf.pose.orientation.y = rotation[1]
+        pose_tf.pose.orientation.z = rotation[2]
+        pose_tf.pose.orientation.w = rotation[3]
         pose_tf.header.stamp = rospy.Time.now()
+        pose_tf.header.frame_id = '/map'
         return pose_tf
 
 

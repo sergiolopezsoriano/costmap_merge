@@ -5,31 +5,21 @@ import rospy
 from nav_msgs.msg import OccupancyGrid
 import tf
 import numpy as np
-from costmap_merge.srv import RobotUpdate, RobotUpdateResponse
-import robot as rb
+import costmap_network
 from helpers import TransformHelper, PoseHelper
 import math
 
 
-class CostmapNetwork:
+class CostmapBuilder:
     def __init__(self):
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')
-        self.type = rospy.get_param('~robot_type')
         # Server for creating and updating robots
         self.service = rospy.Service('update_robots', RobotUpdate, self.cb_update_robot)
         # Costmap information
         self.occupancy_range = 100
-        # Dictionary for the costmap_network nodes
-        self.robots = dict()
-        # Creating the costmap network with one costmap node
-        self.robots[self.namespace] = rb.CostmapNode(self.namespace, self.type)
-
-    def cb_update_robot(self, msg):
-        if msg.namespace not in self.robots:
-            self.robots[msg.namespace] = rb.CostmapNode(msg.namespace, msg.type)
-        self.robots[msg.namespace].transformed = msg.pose
-        return RobotUpdateResponse(True)
+        # Creating the Costmap Network
+        self.cn = costmap_network.CostmapNetwork()
 
     def build_global_costmap(self):
         try:

@@ -51,15 +51,14 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  RobotInfo.msg
+  UpdateRobots.msg
+  Transforms.msg
 )
 
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  RobotDetected.srv
-  RobotHandshake.srv
-  RobotUpdateInfo.srv
+  Handshake.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -163,8 +162,9 @@ include_directories(
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
-  scripts/robot_detection.py
+  scripts/detector.py
   scripts/costmap_network.py
+  scripts/handshake.py
   scripts/robot.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
