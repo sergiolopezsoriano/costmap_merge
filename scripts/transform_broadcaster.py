@@ -2,7 +2,7 @@
 
 import rospy
 import traceback
-import robot as rb
+from nodes import OdomNode as On
 import math
 from costmap_merge.srv import Transforms
 from helpers import TransformHelper, PoseHelper
@@ -17,7 +17,7 @@ class TransformBroadcaster:
         # OdomNode dictionary of all the simulated robots
         self.robots = dict()
         for namespace in self.robots_names:
-            self.robots[namespace] = rb.OdomNode(namespace)
+            self.robots[namespace] = On(namespace)
             self.robots[namespace].pose = TransformHelper.get_map_to_odom_transform(namespace)
         # Service receiving poses and angles for transforms computation
         self.transform_calculator_service = rospy.Service('transform_calculator_service', Transforms,

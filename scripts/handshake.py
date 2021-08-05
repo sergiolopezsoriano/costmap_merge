@@ -2,7 +2,7 @@
 
 import rospy
 import traceback
-import robot as rb
+from nodes import OdomNode
 import math
 from costmap_merge.srv import Handshake, HandshakeResponse
 from helpers import TransformHelper, PoseHelper
@@ -18,7 +18,7 @@ class HandshakeNode:
         # OdomNode dictionary of all the simulated robots
         self.robots = dict()
         for namespace in self.robots_names:
-            self.robots[namespace] = rb.OdomNode(namespace)
+            self.robots[namespace] = OdomNode(namespace)
         # Service to send the pose and frame transforms
         self.detector_finder_service = rospy.Service('handshake_service', Handshake, self.find_detector)
 
