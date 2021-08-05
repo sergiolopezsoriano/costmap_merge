@@ -2,7 +2,7 @@
 
 import rospy
 import traceback
-import robot as rb
+from nodes import OdomNode
 import math
 from costmap_merge.srv import Handshake
 from costmap_merge.msg import UpdateRobots
@@ -20,7 +20,7 @@ class Detector:
         # OdomNode dictionary of all the simulated robots
         self.robots = dict()
         for namespace in self.robots_names:
-            self.robots[namespace] = rb.OdomNode(namespace)
+            self.robots[namespace] = OdomNode(namespace)
         # Iinitializes the proxies for the robot_detection service
         self.robot_detection_proxies = dict()
         # Publishes all known robot poses in the detector frame.
@@ -89,10 +89,10 @@ if __name__ == "__main__":
         rospy.init_node('detector', log_level=rospy.INFO)
         rospy.loginfo('[detector]: Node started')
         detector = Detector()
-        rospy.sleep(5)
+        rospy.sleep(1)
         while not rospy.is_shutdown():
             detector.detect_robots()
-            rospy.sleep(5)
+            rospy.sleep(1)
 
     except Exception as e:
         rospy.logfatal('[detector]: Exception %s', str(e.message) + str(e.args))

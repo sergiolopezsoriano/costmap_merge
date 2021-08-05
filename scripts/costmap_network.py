@@ -3,10 +3,9 @@
 import traceback
 import rospy
 from nav_msgs.msg import OccupancyGrid
-import tf
 import numpy as np
 from costmap_merge.srv import RobotUpdate, RobotUpdateResponse
-import robot as rb
+from nodes import CostmapNode
 from helpers import TransformHelper, PoseHelper
 import math
 
@@ -23,11 +22,11 @@ class CostmapNetwork:
         # Dictionary for the costmap_network nodes
         self.robots = dict()
         # Creating the costmap network with one costmap node
-        self.robots[self.namespace] = rb.CostmapNode(self.namespace, self.type)
+        self.robots[self.namespace] = CostmapNode(self.namespace, self.type)
 
     def cb_update_robot(self, msg):
         if msg.namespace not in self.robots:
-            self.robots[msg.namespace] = rb.CostmapNode(msg.namespace, msg.type)
+            self.robots[msg.namespace] = CostmapNode(msg.namespace, msg.type)
         self.robots[msg.namespace].transformed = msg.pose
         return RobotUpdateResponse(True)
 
@@ -218,12 +217,12 @@ if __name__ == "__main__":
     try:
         rospy.init_node('costmap_network', log_level=rospy.INFO)
         rospy.loginfo('[costmap_network]: Node started')
-        cb = CostmapBuilder()
+        costmap_network = CostmapNetwork()
         # preventing building the map before receiving any costmap
-        while not cb.robots[cb.namespace].local_ready:
+        while not costmap_network.robots[costmap_network.namespace].local_ready:
             rospy.sleep(1)
         while not rospy.is_shutdown():
-            cb.merged_global_costmap = cb.build_global_costmap()
+            costmap_network.merged_global_costmap = costmap_network.build_global_costmap()
 
     except Exception as e:
         rospy.logfatal('[costmap_network]: Exception %s', str(e.message) + str(e.args))

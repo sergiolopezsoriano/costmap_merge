@@ -35,7 +35,7 @@
       <arg name="tf_prefix" value="$(arg tf_prefix)"/>
       <arg name="robot_type" value="detector"/>
     </include>
-    <node name="robot_detection" pkg="costmap_merge" type="robot_detection.py" output="screen">
+    <node name="detector" pkg="costmap_merge" type="detector.py" output="screen">
       <rosparam file="$(find costmap_merge)/config/costmap_network.yaml" command="load" />
     </node>
   </group>
