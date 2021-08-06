@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<launch>
+
+    <arg name="robot_ns"/>
+
+    <group if="$(eval arg('robot_ns') == 'detector1')">
+        <include file="$(find costmap_merge)/launch/includes/detector.launch">
+            <arg name="robot_ns" value="$(arg robot_ns)" />
+            <arg name="$(arg robot_ns)_x" value="0"/>
+            <arg name="$(arg robot_ns)_y" value="0"/>
+            <arg name="$(arg robot_ns)_z" value="0"/>
+            <arg name="$(arg robot_ns)_roll" value="0"/>
+            <arg name="$(arg robot_ns)_pitch" value="0"/>
+            <arg name="$(arg robot_ns)_yaw" value="1.57"/>
+        </include>
+    </group>
+
+    <group if="$(eval arg('robot_ns') == 'robot1')">
+        <include file="$(find costmap_merge)/launch/includes/robot.launch">
+            <arg name="robot_ns" value="$(arg robot_ns)" />
+            <arg name="$(arg robot_ns)_x" value="-3"/>
+            <arg name="$(arg robot_ns)_y" value="0"/>
+            <arg name="$(arg robot_ns)_z" value="0"/>
+            <arg name="$(arg robot_ns)_roll" value="0"/>
+            <arg name="$(arg robot_ns)_pitch" value="0"/>
+            <arg name="$(arg robot_ns)_yaw" value="-1.57"/>
+        </include>
+    </group>
+
+    <group if="$(eval arg('robot_ns') == 'robot2')">
+        <include file="$(find costmap_merge)/launch/includes/robot.launch">
+            <arg name="robot_ns" value="$(arg robot_ns)" />
+            <arg name="$(arg robot_ns)_x" value="3"/>
+            <arg name="$(arg robot_ns)_y" value="0"/>
+            <arg name="$(arg robot_ns)_z" value="0"/>
+            <arg name="$(arg robot_ns)_roll" value="0"/>
+            <arg name="$(arg robot_ns)_pitch" value="0"/>
+            <arg name="$(arg robot_ns)_yaw" value="3.14"/>
+        </include>
+    </group>
+
+</launch>

@@ -14,13 +14,16 @@ class Detector:
     def __init__(self):
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')
-        self.type = rospy.get_param('~robot_type')
-        self.robots_names = rospy.get_param('~robots_names')
-        self.min_detector_distance = rospy.get_param('~min_detector_distance')
+        self.type = rospy.get_param('/' + str(self.namespace) + '/robot_type')
+        self.robots_names = rospy.get_param('/' + str(self.namespace) + '/robots_names')
+        self.min_detector_distance = rospy.get_param('/' + str(self.namespace) + '/min_detector_distance')
         # OdomNode dictionary of all the simulated robots
         self.robots = dict()
         for namespace in self.robots_names:
             self.robots[namespace] = OdomNode(namespace)
+            coordinates = rospy.get_param('/' + str(self.namespace) + '/coordinates')
+            print(str(self.namespace) + ': ' + str(coordinates))
+            self.robots[namespace].set_start_pose('/gazebo_world', rospy.Time.now(), coordinates)
         # Iinitializes the proxies for the robot_detection service
         self.robot_detection_proxies = dict()
         # Publishes all known robot poses in the detector frame.
@@ -37,8 +40,9 @@ class Detector:
             y = self.robots[robot].start.pose.position.y + self.robots[
                 robot].odom.pose.pose.position.y * np.cos(yaw) + self.robots[robot].odom.pose.pose.position.x * np.sin(
                 yaw)
-            self.robots[robot].set_transformed('/map', x, y, yaw + PoseHelper.get_yaw_from_orientation(
-                self.robots[robot].odom.pose.pose.orientation))
+            self.robots[robot].set_transformed_pose('/map', rospy.Time.now(),
+                                                    [x, y, 0, 0, 0, yaw + PoseHelper.get_yaw_from_orientation(
+                                                        self.robots[robot].odom.pose.pose.orientation)])
 
     def detect_robots(self):
         """ Returns the namespace of the detected robot. Detection and Location are based on sharing a common map frame.
@@ -65,8 +69,8 @@ class Detector:
 
     def call_robot(self, robot, pose_D_D, pose_R_D, alpha):
         if self.robot_detection_proxies[robot] is None:
-            rospy.wait_for_service('/' + robot + '/handshake_service')
-            self.robot_detection_proxies[robot] = rospy.ServiceProxy('/' + robot + '/handshake_service', Handshake)
+            rospy.wait_for_service('/' + robot + '/detection_handshake_service')
+            self.robot_detection_proxies[robot] = rospy.ServiceProxy('/' + robot + '/detection_handshake_service', Handshake)
         response = self.robot_detection_proxies[robot](self.namespace, pose_D_D, pose_R_D, alpha)
         rospy.loginfo('[detector]: response from ' + robot + ' = ' + str(response))
         msg = UpdateRobots()
@@ -91,7 +95,7 @@ if __name__ == "__main__":
         detector = Detector()
         rospy.sleep(1)
         while not rospy.is_shutdown():
-            detector.detect_robots()
+            # detector.detect_robots()
             rospy.sleep(1)
 
     except Exception as e:

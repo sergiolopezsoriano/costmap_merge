@@ -9,18 +9,21 @@ from helpers import TransformHelper, PoseHelper
 import numpy as np
 
 
-class HandshakeNode:
+class DetectionHandshake:
     def __init__(self):
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')
-        self.type = rospy.get_param('~robot_type')
-        self.robots_names = rospy.get_param('~robots_names')
+        self.type = rospy.get_param('/' + str(self.namespace) + '/robot_type')
+        self.robots_names = rospy.get_param('/' + str(self.namespace) + '/robots_names')
         # OdomNode dictionary of all the simulated robots
         self.robots = dict()
         for namespace in self.robots_names:
             self.robots[namespace] = OdomNode(namespace)
+            coordinates = rospy.get_param('/' + str(self.namespace) + '/coordinates')
+            print(str(self.namespace) + ': ' + str(coordinates))
+            self.robots[namespace].set_start_pose('/gazebo_world', rospy.Time.now(), coordinates)
         # Service to send the pose and frame transforms
-        self.detector_finder_service = rospy.Service('handshake_service', Handshake, self.find_detector)
+        self.detector_finder_service = rospy.Service('detection_handshake_service', Handshake, self.find_detector)
 
     def update_detector(self, robot):
         yaw = PoseHelper.get_yaw_from_orientation(self.robots[robot].start.pose.orientation)
@@ -30,7 +33,7 @@ class HandshakeNode:
         y = self.robots[robot].start.pose.position.y + self.robots[
             robot].odom.pose.pose.position.y * np.cos(yaw) + self.robots[robot].odom.pose.pose.position.x * np.sin(
             yaw)
-        self.robots[robot].set_transformed('/map', x, y, yaw + PoseHelper.get_yaw_from_orientation(
+        self.robots[robot].set_transformed('/map', x, y, 0, yaw + PoseHelper.get_yaw_from_orientation(
             self.robots[robot].odom.pose.pose.orientation))
 
     def find_detector(self, msg):
@@ -53,12 +56,12 @@ class HandshakeNode:
 if __name__ == "__main__":
 
     try:
-        rospy.init_node('handshake_node', log_level=rospy.INFO)
-        rospy.loginfo('[handshake_node]: Node started')
-        hn = HandshakeNode()
+        rospy.init_node('detection_handshake', log_level=rospy.INFO)
+        rospy.loginfo('[detection_handshake]: Node started')
+        detection_handshake = DetectionHandshake()
         rospy.spin()
 
     except Exception as e:
-        rospy.logfatal('[handshake_node]: Exception %s', str(e.message) + str(e.args))
+        rospy.logfatal('[detection_handshake]: Exception %s', str(e.message) + str(e.args))
         e = traceback.format_exc()
         rospy.logfatal(e)

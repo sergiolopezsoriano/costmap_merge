@@ -4,13 +4,8 @@
   <arg name="stacks"/>
   <arg name="3d_sensor"/>
   <arg name="init_pose"/>
-  <arg name="robot_name"/>
+  <arg name="robot_ns"/>
   <arg name="tf_prefix"/>
-  <arg name="x"/>
-  <arg name="y"/>
-  <arg name="Y"/>
-  <arg name="robot_type"/>
-
 
   <!-- Robot description -->
   <arg name="urdf_file" default="$(find xacro)/xacro '$(find turtlebot_description)/robots/$(arg base)_$(arg stacks)_$(arg 3d_sensor).urdf.xacro'"/>
@@ -18,7 +13,7 @@
 
   <!-- Gazebo model spawner -->
   <node name="spawn_turtlebot_model" pkg="gazebo_ros" type="spawn_model"
-        args="$(arg init_pose) -unpause -urdf -param robot_description -model $(arg robot_name)"/>
+        args="$(arg init_pose) -unpause -urdf -param robot_description -model $(arg robot_ns)"/>
 
   <!-- Velocity muxer -->
   <node pkg="nodelet" type="nodelet" name="mobile_base_nodelet_manager" args="manager"/>
@@ -47,14 +42,7 @@
   </node>
 
   <include file="$(find costmap_merge)/launch/includes/move_base.launch.xml">
-    <arg name="robot_name" value="$(arg robot_name)"/>
+    <arg name="robot_ns" value="$(arg robot_ns)"/>
   </include>
-
-  <node name="static_tf" pkg="tf" type="static_transform_publisher" args="$(arg x) $(arg y) 0 $(arg Y) 0 0 map /$(arg tf_prefix)/odom 100"/>
-
-<!--  <node name="costmap_network" pkg="costmap_merge" type="costmap_network.py" output="screen">-->
-<!--    <rosparam file="$(find costmap_merge)/config/costmap_network.yaml" command="load" />-->
-<!--    <param name="robot_type" value="$(arg robot_type)"/>-->
-<!--  </node>-->
 
 </launch>

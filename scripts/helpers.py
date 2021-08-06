@@ -84,9 +84,9 @@ class PoseHelper:
         return tf.transformations.euler_from_quaternion([orientation.x, orientation.y, orientation.z, orientation.w])[2]
 
     @staticmethod
-    def get_orientation_from_yaw(yaw):
-        orientation = Quaternion
-        quaternion = tf.transformations.quaternion_from_euler(0, 0, yaw)
+    def get_orientation_from_yaw(roll, pitch, yaw):
+        orientation = Quaternion()
+        quaternion = tf.transformations.quaternion_from_euler(roll, pitch, yaw)
         orientation.x = quaternion[0]
         orientation.y = quaternion[1]
         orientation.z = quaternion[2]
@@ -105,14 +105,15 @@ class PoseHelper:
         qy = oy - math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
         return qx, qy
 
-    def get_2D_pose(self, namespace, x, y, z, yaw, ts):
+    @staticmethod
+    def set_2D_pose(frame_id, time_stamp, coordinates):
         pose = PoseStamped()
-        pose.header.frame_id = namespace + '/odom'
-        pose.header.stamp = ts
-        pose.pose.position.x = x
-        pose.pose.position.y = y
-        pose.pose.position.z = z
-        pose.pose.orientation = self.get_orientation_from_yaw(yaw)
+        pose.header.frame_id = frame_id
+        pose.header.stamp = time_stamp
+        pose.pose.position.x = coordinates[0]
+        pose.pose.position.y = coordinates[1]
+        pose.pose.position.z = coordinates[2]
+        pose.pose.orientation = PoseHelper.get_orientation_from_yaw(coordinates[3], coordinates[4], coordinates[5])
         return pose
 
     @staticmethod
