@@ -2,12 +2,15 @@
 <launch>
 
   <arg name="robot_ns"/>
+  <arg name="robot_type"/>
   <arg name="x"/>
   <arg name="y"/>
   <arg name="z"/>
   <arg name="roll"/>
   <arg name="pitch"/>
   <arg name="yaw"/>
+  <arg name="width"/>
+  <arg name="height"/>
 
   <arg name="base"       value="$(optenv TURTLEBOT_BASE kobuki)"/> <!-- create, roomba -->
   <arg name="battery"    value="$(optenv TURTLEBOT_BATTERY /proc/acpi/battery/BAT0)"/>  <!-- /proc/acpi/battery/BAT0 -->
@@ -16,11 +19,12 @@
 
   <group ns="$(arg robot_ns)">
     <arg name="tf_prefix" value="$(arg robot_ns)"/>
-    <arg name="robot_type" value="detector"/>
-    <rosparam param="coordinates" subst_value="True">[$(arg x), $(arg y), $(arg z), $(arg roll), $(arg pitch), $(arg yaw)]</rosparam>
     <param name="tf_prefix" value="$(arg tf_prefix)"/>
     <param name="robot_type" value="$(arg robot_type)"/>
     <rosparam file="$(find costmap_merge)/config/handshake.yaml" command="load"/>
+    <rosparam param="coordinates" subst_value="True">
+      [$(arg x), $(arg y), $(arg z), $(arg roll), $(arg pitch), $(arg yaw)]
+    </rosparam>
     <include file="$(find costmap_merge)/launch/includes/robot.launch.xml">
       <arg name="base" value="$(arg base)"/>
       <arg name="stacks" value="$(arg stacks)"/>
@@ -28,8 +32,11 @@
       <arg name="init_pose" value="-x $(arg x) -y $(arg y) -z $(arg z) -R $(arg roll) -P $(arg pitch) -Y $(arg yaw)" />
       <arg name="robot_ns"  value="$(arg robot_ns)"/>
       <arg name="tf_prefix" value="$(arg tf_prefix)"/>
+      <arg name="width" value="$(arg width)"/>
+    <arg name="height" value="$(arg height)"/>
     </include>
-<!--    <node name="detection_handshake" pkg="costmap_merge" type="detection_handshake.py" output="screen"/>-->
+    <node name="detector" pkg="costmap_merge" type="detector.py" output="screen" if="$(eval arg('robot_type') == 'detector')"/>
+    <node name="detection_handshake" pkg="costmap_merge" type="detection_handshake.py" output="screen" if="$(eval arg('robot_type') == 'robot')"/>
 <!--    <node name="costmap_network" pkg="costmap_merge" type="costmap_network.py" output="screen"/>-->
   </group>
  

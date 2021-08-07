@@ -11,7 +11,7 @@
     <arg name="world_name" value="$(arg world_file)"/>
   </include>
 
-  <node name="robot_launcher" pkg="costmap_merge" type="robot_launcher.py" output="screen">
+  <node name="simulation_launcher" pkg="costmap_merge" type="simulation_launcher.py" output="screen">
     <rosparam file="$(find costmap_merge)/config/simulation.yaml" command="load"/>
   </node>
 

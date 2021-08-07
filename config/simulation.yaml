@@ -2,15 +2,27 @@
 # Robot Launcher Parameters
 ##############################################################################
 
-# File names
-detector_launch_file: '/home/sergi/catkin_ws/src/costmap_merge/launch/includes/detector.launch'
+########################## .launch file paths ################################
+# turtlebot2:
 robot_launch_file: '/home/sergi/catkin_ws/src/costmap_merge/launch/includes/robot.launch'
 
-# number of robots
-num_detectors: 1
-num_robots: 2
+##############################################################################
 
-# Fixed Robot positions
-d1: [0, 0, 0, 0, 0, 1.57]
-r1: [-3, 0, 0, 0, 0, -1.57]
-r2: [3, 0, 0, 0, 0, 3.14]
+# number of robots. If fixed poses and costmaps are used, don't exceed the number of configuration per robot type.
+num_detectors: 1
+num_robots: 1
+
+# Set random configuration. If False the fixed robot poses and/or costmap sizes are used.
+random_pose: False
+random_costmap_dimensions: False
+
+# Fixed Robot positions and costmap sizes
+detector1:
+  pose: [0, 0, 0, 0, 0, 1.57]  # x, y, z, roll, pitch, yaw
+  costmap: [3, 3]  # width, height
+robot1:
+  pose: [-3, 0, 0, 0, 0, -1.57]
+  costmap: [3, 3]
+robot2:
+  pose: [3, 0, 0, 0, 0, 3.14]
+  costmap: [3, 3]

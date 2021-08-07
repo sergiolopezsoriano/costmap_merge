@@ -15,14 +15,13 @@ class Detector:
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')
         self.type = rospy.get_param('/' + str(self.namespace) + '/robot_type')
-        self.robots_names = rospy.get_param('/' + str(self.namespace) + '/robots_names')
+        self.robots_names = rospy.get_param('/simulation_launcher/robots_names')
         self.min_detector_distance = rospy.get_param('/' + str(self.namespace) + '/min_detector_distance')
         # OdomNode dictionary of all the simulated robots
         self.robots = dict()
         for namespace in self.robots_names:
             self.robots[namespace] = OdomNode(namespace)
             coordinates = rospy.get_param('/' + str(self.namespace) + '/coordinates')
-            print(str(self.namespace) + ': ' + str(coordinates))
             self.robots[namespace].set_start_pose('/gazebo_world', rospy.Time.now(), coordinates)
         # Iinitializes the proxies for the robot_detection service
         self.robot_detection_proxies = dict()
@@ -33,38 +32,37 @@ class Detector:
 
     def set_robots(self):
         for robot in self.robots:
-            yaw = PoseHelper.get_yaw_from_orientation(self.robots[robot].start.pose.orientation)
+            yaw = PoseHelper.get_yaw_from_orientation(self.robots[robot].start.pose.orientation) + \
+                  PoseHelper.get_yaw_from_orientation(self.robots[robot].odom.pose.pose.orientation)
             x = self.robots[robot].start.pose.position.x + self.robots[
                 robot].odom.pose.pose.position.x * np.cos(yaw) - self.robots[robot].odom.pose.pose.position.y * np.sin(
                 yaw)
             y = self.robots[robot].start.pose.position.y + self.robots[
                 robot].odom.pose.pose.position.y * np.cos(yaw) + self.robots[robot].odom.pose.pose.position.x * np.sin(
                 yaw)
-            self.robots[robot].set_transformed_pose('/map', rospy.Time.now(),
-                                                    [x, y, 0, 0, 0, yaw + PoseHelper.get_yaw_from_orientation(
-                                                        self.robots[robot].odom.pose.pose.orientation)])
+            self.robots[robot].set_transformed_odom('/map', rospy.Time.now(), [x, y, 0, 0, 0, yaw])
 
     def detect_robots(self):
         """ Returns the namespace of the detected robot. Detection and Location are based on sharing a common map frame.
-        This is only possible in simulation. It needs to be modified for real time operation"""
+        This is only possible in simulation. It needs to be modified for real time operation """
         self.set_robots()
         for robot in self.robots:
             if robot != self.namespace:
-                d = math.sqrt((self.robots[robot].transformed.pose.position.x - self.robots[
-                    self.namespace].transformed.pose.position.x) ** 2 + (
-                                          self.robots[robot].transformed.pose.position.y - self.robots[
-                                      self.namespace].transformed.pose.position.y) ** 2)
+                d = math.sqrt((self.robots[robot].transformed_odom.pose.position.x - self.robots[
+                    self.namespace].transformed_odom.pose.position.x) ** 2 + (
+                                          self.robots[robot].transformed_odom.pose.position.y - self.robots[
+                                      self.namespace].transformed_odom.pose.position.y) ** 2)
                 if d < self.min_detector_distance:
                     self.locate_robot(robot)
 
     def locate_robot(self, robot):
         """ AI robot location must provide pose_D_D, pose_R_D and alpha """
-        pose_D_D = self.robots[self.namespace].transformed
-        pose_R_D = self.robots[robot].transformed
-        alpha = math.atan2((self.robots[robot].transformed.pose.position.y - self.robots[
-            self.namespace].transformed.pose.position.y) / (
-                                       self.robots[robot].transformed.pose.position.x - self.robots[
-                                   self.namespace].transformed.transformed.pose.position.x))
+        pose_D_D = self.robots[self.namespace].transformed_odom
+        pose_R_D = self.robots[robot].transformed_odom
+        alpha = math.atan2((self.robots[robot].transformed_odom.pose.position.y - self.robots[
+            self.namespace].transformed_odom.pose.position.y) / (
+                                       self.robots[robot].transformed_odom.pose.position.x - self.robots[
+                                   self.namespace].transformed_odom.pose.position.x))
         self.call_robot(robot, pose_D_D, pose_R_D, alpha)
 
     def call_robot(self, robot, pose_D_D, pose_R_D, alpha):
@@ -95,7 +93,7 @@ if __name__ == "__main__":
         detector = Detector()
         rospy.sleep(1)
         while not rospy.is_shutdown():
-            # detector.detect_robots()
+            detector.detect_robots()
             rospy.sleep(1)
 
     except Exception as e:

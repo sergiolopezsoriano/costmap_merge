@@ -11,12 +11,13 @@ class OdomNode(object):
         self.namespace = namespace
         # Starting relative pose to the map TODO: apply changes for real operation
         self.start = PoseStamped()
-        # Odom pose in the /map frame
-        self.transformed = PoseStamped()
         # Flags to prevent publishing before the odometry is received
         self.odom_ready = False
-        # Odometry subscriber
+        # Odometry pose
         self.odom = Odometry()
+        # Odom pose in the /map frame
+        self.transformed_odom = PoseStamped()
+        # Odometry subscriber
         rospy.Subscriber('/' + namespace + '/odom', Odometry, self.cb_odom, queue_size=1)
 
     def cb_odom(self, msg):
@@ -27,8 +28,8 @@ class OdomNode(object):
     def set_start_pose(self, frame_id, time_stamp, coordinates):
         self.start = PoseHelper.set_2D_pose(frame_id, time_stamp, coordinates)
 
-    def set_transformed_pose(self, frame_id, time_stamp, coordinates):
-        self.transformed = PoseHelper.set_2D_pose(frame_id, time_stamp, coordinates)
+    def set_transformed_odom(self, frame_id, time_stamp, coordinates):
+        self.transformed_odom = PoseHelper.set_2D_pose(frame_id, time_stamp, coordinates)
 
 
 class CostmapNode(OdomNode):
@@ -40,9 +41,9 @@ class CostmapNode(OdomNode):
         # Rotated local costmap dimensions
         self.roloco_width = int()
         self.roloco_height = int()
-        # Flags to prevent publishing before both costmaps are received
+        # Flag to prevent publishing before both costmaps are received
         self.local_ready = False
-        # Costmaps subscriber
+        # Costmap subscriber
         rospy.Subscriber('/' + self.namespace + '/local_costmap', OccupancyGrid, self.cb_local_costmap, queue_size=1)
 
     def cb_local_costmap(self, msg):

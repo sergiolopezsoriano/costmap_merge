@@ -20,7 +20,6 @@ class DetectionHandshake:
         for namespace in self.robots_names:
             self.robots[namespace] = OdomNode(namespace)
             coordinates = rospy.get_param('/' + str(self.namespace) + '/coordinates')
-            print(str(self.namespace) + ': ' + str(coordinates))
             self.robots[namespace].set_start_pose('/gazebo_world', rospy.Time.now(), coordinates)
         # Service to send the pose and frame transforms
         self.detector_finder_service = rospy.Service('detection_handshake_service', Handshake, self.find_detector)
