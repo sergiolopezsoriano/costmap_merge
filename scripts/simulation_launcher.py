@@ -20,7 +20,7 @@ class RobotLauncher:
         self.robots_names = list()
 
     def set_ros_params(self):
-        rospy.set_param('robots_names', self.robots_names)
+        rospy.set_param('~robots_names', self.robots_names)
 
     def launch_robots(self):
         while self.num_detectors > 0:
@@ -41,7 +41,7 @@ class RobotLauncher:
         if self.random_pose:
             x, y, z, roll, pitch, yaw = RobotLauncher.get_random_pose()
         else:
-            x, y, z, roll, pitch, yaw = rospy.get_param('~' + robot_ns + '/pose')
+            x, y, z, roll, pitch, yaw = rospy.get_param('~' + robot_ns + '/coordinates')
         if self.random_costmap_dimensions:
             width, height = RobotLauncher.get_random_costmap_dimensions()
         else:

@@ -58,7 +58,8 @@ add_message_files(
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  Handshake.srv
+  Handshake1.srv
+  Handshake2.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -165,6 +166,7 @@ catkin_install_python(PROGRAMS
   scripts/detector.py
   scripts/costmap_network.py
   scripts/detection_handshake.py
+  scripts/detection_manager.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

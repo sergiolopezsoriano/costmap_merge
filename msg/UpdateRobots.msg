@@ -1,3 +1,3 @@
-string origin
-string destination
+string detector_ns
+string robot_ns
 geometry_msgs/PoseStamped pose

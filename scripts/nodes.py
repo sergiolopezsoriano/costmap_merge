@@ -15,7 +15,7 @@ class OdomNode(object):
         self.odom_ready = False
         # Odometry pose
         self.odom = Odometry()
-        # Odom pose in the /map frame
+        # Odom pose in the map frame
         self.transformed_odom = PoseStamped()
         # Odometry subscriber
         rospy.Subscriber('/' + namespace + '/odom', Odometry, self.cb_odom, queue_size=1)
