@@ -26,7 +26,7 @@ class Detector:
         # Initializes the proxies dictionary to communicate with the detection_handshake node
         self.handshake1_proxies = dict()
 
-    def set_robots(self):
+    def set_map_poses(self):
         """ At this stage, we don't know other robots start.pose, therefore we wouldn't be able to calculate the
         transformed_odom pose. This information is only used to detect robots in a circle of radius
         self.min_detection_distance """
@@ -36,21 +36,19 @@ class Detector:
                 yaw) - self.robots[robot].odom.pose.pose.position.y * math.sin(yaw)
             y = self.robots[robot].start.pose.position.y + self.robots[robot].odom.pose.pose.position.y * math.cos(
                 yaw) + self.robots[robot].odom.pose.pose.position.x * math.sin(yaw)
-            print("TRANSFORMED COORDINATES " + str(robot) + ": " + str(x) + " , " + str(y))
             transformed_yaw = yaw + PoseHelper.get_yaw_from_orientation(self.robots[robot].odom.pose.pose.orientation)
             self.robots[robot].set_transformed_odom('/map', rospy.Time.now(), [x, y, 0, 0, 0, transformed_yaw])
 
     def detect_robots(self):
         """ Detection and Location are based on sharing the common frame /map.
         This is only possible in simulation. It needs to be modified for real time operation """
-        self.set_robots()
+        self.set_map_poses()
         for robot in self.robots:
             if robot != self.namespace:
                 d = math.sqrt((self.robots[robot].transformed_odom.pose.position.x - self.robots[
                     self.namespace].transformed_odom.pose.position.x) ** 2 + (
                                           self.robots[robot].transformed_odom.pose.position.y - self.robots[
                                       self.namespace].transformed_odom.pose.position.y) ** 2)
-                print("DISTANCE BETWEEN ROBOTS: " + str(d))
                 if d < self.min_detection_distance:
                     self.locate_robot(robot)
 
@@ -72,6 +70,10 @@ class Detector:
          we still don't know the robot's orientation, therefore we set its yaw to zero """
         x = self.robots[robot].transformed_odom.pose.position.x - self.robots[self.namespace].start.pose.position.x
         y = self.robots[robot].transformed_odom.pose.position.y - self.robots[self.namespace].start.pose.position.y
+        x, y = PoseHelper.rotate([self.robots[self.namespace].start.pose.position.x,
+                                  self.robots[self.namespace].start.pose.position.y], [x, y],
+                                 PoseHelper.get_yaw_from_orientation(
+                                     self.robots[self.namespace].start.pose.orientation))
         pose_R_D = PoseHelper.set_2D_pose(str(self.namespace) + '/odom', rospy.Time.now(), [x, y, 0, 0, 0, 0])
         return pose_R_D
 
@@ -83,8 +85,6 @@ class Detector:
             rospy.wait_for_service('/' + robot + '/handshake1_service')
             self.handshake1_proxies[robot] = rospy.ServiceProxy('/' + robot + '/handshake1_service', Handshake1)
             self.handshake1_proxies[robot](self.namespace, pose_D_D, pose_R_D, alpha)
-        rospy.loginfo('[detector]: Handshake1 message sent to ' + robot)
-
 
 
 if __name__ == "__main__":
@@ -93,7 +93,12 @@ if __name__ == "__main__":
         rospy.init_node('detector', log_level=rospy.INFO)
         rospy.loginfo('[detector]: Node started')
         detector = Detector()
-        rospy.sleep(1)
+        ready = False
+        while not ready:
+            for rb in detector.robots:
+                while not detector.robots[rb].odom_ready:
+                    rospy.sleep(1)
+            ready = True
         while not rospy.is_shutdown():
             detector.detect_robots()
             rospy.sleep(1)

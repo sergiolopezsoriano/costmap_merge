@@ -2,12 +2,10 @@
 
 import rospy
 import traceback
-from nodes import OdomNode
-from costmap_merge.srv import Handshake2
+from costmap_merge.srv import Handshake2, Handshake2Response
 from costmap_merge.msg import UpdateRobots
-from std_srvs.srv import EmptyResponse
 from helpers import TransformHelper, PoseHelper
-import tf
+import tf2_ros
 
 
 class DetectionManager:
@@ -20,18 +18,14 @@ class DetectionManager:
         self.poses = dict()
         self.robot_pose_publisher = rospy.Publisher('/' + self.namespace + '/detected_robots_topic', UpdateRobots,
                                                     queue_size=10)
+        # TransformBroadcaster to send transformations to the tf_tree
+        self.br = tf2_ros.TransformBroadcaster()
 
-    @staticmethod
-    def cb_detection_manager(msg):
-        print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-        # t = TransformHelper.get_pose_transform(msg)
-        return EmptyResponse()
-
-        # msg = UpdateRobots()
-        # msg.pose = response.pose_R_D
-        # msg.robot_ns = response.robot_ns
-        # msg.detector_ns = response.detector_ns
-        # self.poses[response.robot_ns] = msg
+    def cb_detection_manager(self, msg):
+        t = TransformHelper.get_frame_transform(msg.pose_R_D, msg.pose_R_R, msg.alpha, msg.beta)
+        self.br.sendTransform(t)
+        self.poses[msg.robot_ns] = msg.pose_R_D
+        return Handshake2Response()
 
     def publish_robots_poses(self, poses):
         self.robot_pose_publisher.publish(poses)

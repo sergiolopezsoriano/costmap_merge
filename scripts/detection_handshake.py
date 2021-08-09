@@ -4,8 +4,7 @@ import rospy
 import traceback
 from nodes import OdomNode
 import math
-from costmap_merge.srv import Handshake1, Handshake2
-from std_srvs.srv import EmptyResponse
+from costmap_merge.srv import Handshake1, Handshake2, Handshake1Response
 from helpers import TransformHelper, PoseHelper
 
 
@@ -28,7 +27,6 @@ class DetectionHandshake:
 
     def detector_call(self, msg):
         """ The detector calls providing its position and angle relative to this robot. """
-        print("DETECTOR CALLBACK " + str(self.namespace) + ": " + str(msg))
         pose_D_R = self.find_detector_in_costmap(msg.detector_ns)
         pose_R_R = PoseHelper.get_pose_from_odom(self.robots[self.namespace].odom)
         beta = math.atan2(self.robots[msg.detector_ns].transformed_odom.pose.position.y - self.robots[
@@ -37,8 +35,7 @@ class DetectionHandshake:
                               self.namespace].transformed_odom.pose.position.x)
         self.handshake2(msg.detector_ns, msg.pose_D_D, msg.pose_R_D, msg.alpha, self.namespace, pose_D_R, pose_R_R,
                         beta)
-        rospy.sleep(5)
-        return EmptyResponse()
+        return Handshake1Response()
 
     def find_detector_in_costmap(self, robot):
         """ This function emulates the search of the detector in the robot's costmap. First we calculate the detector's
@@ -58,19 +55,25 @@ class DetectionHandshake:
         orientation, therefore we set it to zero """
         x = self.robots[robot].transformed_odom.pose.position.x - self.robots[self.namespace].start.pose.position.x
         y = self.robots[robot].transformed_odom.pose.position.y - self.robots[self.namespace].start.pose.position.y
+        x, y = PoseHelper.rotate([self.robots[self.namespace].start.pose.position.x,
+                                  self.robots[self.namespace].start.pose.position.y], [x, y],
+                                 PoseHelper.get_yaw_from_orientation(
+                                     self.robots[self.namespace].start.pose.orientation))
         pose_D_R = PoseHelper.set_2D_pose(str(self.namespace) + '/odom', rospy.Time.now(), [x, y, 0, 0, 0, 0])
         return pose_D_R
 
     def handshake2(self, detector_ns, pose_D_D, pose_R_D, alpha, robot_ns, pose_D_R, pose_R_R, beta):
-        """ Sends the detector and robot poses in the detector frame to the detected robot """
+        """ Sends the detector and robot poses in the detector frame to the detection_manager node in the Detector """
+        pose_D_R, pose_R_D = TransformHelper.get_poses_transform(pose_D_D, pose_R_D, pose_R_R, pose_D_R, alpha, beta)
         try:
             self.handshake2_proxies[detector_ns](detector_ns, pose_D_D, pose_R_D, alpha, robot_ns, pose_D_R, pose_R_R,
                                                  beta)
-            rospy.loginfo('[detector]: Handshake2 message sent to ' + detector_ns)
         except KeyError:
             rospy.wait_for_service('/' + detector_ns + '/handshake2_service')
             self.handshake2_proxies[detector_ns] = rospy.ServiceProxy('/' + detector_ns + '/handshake2_service',
                                                                       Handshake2)
+            self.handshake2_proxies[detector_ns](detector_ns, pose_D_D, pose_R_D, alpha, robot_ns, pose_D_R, pose_R_R,
+                                                 beta)
 
 
 if __name__ == "__main__":

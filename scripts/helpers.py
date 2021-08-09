@@ -16,31 +16,15 @@ class TransformHelper:
         self.br.sendTransform(transform)
 
     @staticmethod
-    def get_pose_transform(pose_D_D, pose_R_D, pose_R_R, pose_D_R, alpha, beta):
+    def get_poses_transform(pose_D_D, pose_R_D, pose_R_R, pose_D_R, alpha, beta):
         gamma = math.pi + alpha - beta
         yaw_D_D = PoseHelper.get_yaw_from_orientation(pose_D_D.pose.orientation)
         yaw_R_R = PoseHelper.get_yaw_from_orientation(pose_R_R.pose.orientation)
         yaw_R_D = yaw_R_R + gamma
         yaw_D_R = yaw_D_D - gamma
-        rotation_R_D = yaw_D_D - yaw_R_D
-        rotation_D_R = yaw_D_R - yaw_R_R
-        tDR = TransformStamped()
-        tDR.header.stamp = rospy.Time.now()
-        tDR.header.frame_id = pose_D_D.header.frame_id  # origin
-        tDR.child_frame_id = pose_R_D.header.frame_id  # destination
-        tDR.transform.translation.x = pose_R_D.pose.position.x - pose_D_D.pose.position.x
-        tDR.transform.translation.y = pose_R_D.pose.position.y - pose_D_D.pose.position.y
-        tDR.transform.translation.z = pose_R_D.pose.position.z - pose_D_D.pose.position.z
-        tDR.transform.rotation = PoseHelper.get_orientation_from_yaw(rotation_R_D)
-        tRD = TransformStamped()
-        tRD.header.stamp = rospy.Time.now()
-        tRD.header.frame_id = pose_R_R.header.frame_id  # origin
-        tRD.child_frame_id = pose_D_R.header.frame_id  # destination
-        tRD.transform.translation.x = pose_D_R.pose.position.x - pose_R_R.pose.position.x
-        tRD.transform.translation.y = pose_D_R.pose.position.y - pose_R_R.pose.position.y
-        tRD.transform.translation.z = pose_D_R.pose.position.z - pose_R_R.pose.position.z
-        tRD.transform.rotation = PoseHelper.get_orientation_from_yaw(rotation_D_R)
-        return tDR, pose_D_R, tRD, pose_R_D
+        pose_R_D.pose.orientation = PoseHelper.get_orientation_from_yaw(0, 0, yaw_R_D)
+        pose_D_R.pose.orientation = PoseHelper.get_orientation_from_yaw(0, 0, yaw_D_R)
+        return pose_D_R, pose_R_D
 
     @staticmethod
     def get_frame_transform(pose_R_D, pose_R_R, alpha, beta):
@@ -49,11 +33,12 @@ class TransformHelper:
         t.header.stamp = rospy.Time.now()
         t.header.frame_id = pose_R_D.header.frame_id  # origin
         t.child_frame_id = pose_R_R.header.frame_id  # destination
-        t.transform.translation.x = pose_R_R.pose.position.x - pose_R_D.pose.position.x * math.cos(
-            gamma) + pose_R_D.pose.position.y * math.sin(gamma)
-        t.transform.translation.y = pose_R_R.pose.position.y - pose_R_D.pose.position.y
-        t.transform.translation.z = pose_R_R.pose.position.z - pose_R_D.pose.position.z
-        t.transform.rotation = PoseHelper.get_orientation_from_yaw(gamma)
+        t.transform.translation.x = pose_R_D.pose.position.x - pose_R_R.pose.position.x * math.cos(
+            gamma) + pose_R_R.pose.position.y * math.sin(gamma)
+        t.transform.translation.y = pose_R_D.pose.position.y - pose_R_R.pose.position.x * math.sin(
+            gamma) - pose_R_R.pose.position.y * math.cos(gamma)
+        t.transform.translation.z = 0
+        t.transform.rotation = PoseHelper.get_orientation_from_yaw(0, 0, gamma)
         return t
 
     @staticmethod
