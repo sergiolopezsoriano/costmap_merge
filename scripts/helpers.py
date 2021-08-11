@@ -16,7 +16,7 @@ class TransformHelper:
         self.br.sendTransform(transform)
 
     @staticmethod
-    def get_poses_transform(pose_D_D, pose_R_D, pose_R_R, pose_D_R, alpha, beta):
+    def get_poses_orientation(pose_D_D, pose_R_D, pose_R_R, pose_D_R, alpha, beta):
         gamma = math.pi + alpha - beta
         yaw_D_D = PoseHelper.get_yaw_from_orientation(pose_D_D.pose.orientation)
         yaw_R_R = PoseHelper.get_yaw_from_orientation(pose_R_R.pose.orientation)

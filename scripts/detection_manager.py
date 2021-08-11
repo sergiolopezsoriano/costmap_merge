@@ -20,9 +20,16 @@ class DetectionManager:
                                                     queue_size=10)
         # TransformBroadcaster to send transformations to the tf_tree
         self.br = tf2_ros.TransformBroadcaster()
+        # Dictionary of Flags to decide whether to broadcast a transform or not depending on the robot discovery and the
+        # elapsed time since the last detection
+        self.flags = dict()
+        # List of detected robots
+        self.robots = list()
 
     def cb_detection_manager(self, msg):
-        t = TransformHelper.get_frame_transform(msg.pose_R_D, msg.pose_R_R, msg.alpha, msg.beta)
+        self.robots.append(msg.robot_ns)
+        self.flags[msg.robot_ns] = True
+        t = TransformHelper.get_frame_transform(msg.pose_D_R, msg.pose_D_D, msg.alpha, msg.beta)
         self.br.sendTransform(t)
         self.poses[msg.robot_ns] = msg.pose_R_D
         return Handshake2Response()
@@ -37,7 +44,11 @@ if __name__ == "__main__":
         rospy.init_node('detection_manager', log_level=rospy.INFO)
         rospy.loginfo('[detection_manager]: Node started')
         manager = DetectionManager()
-        rospy.spin()
+        while not rospy.is_shutdown():
+            if manager.robots:
+                for rb in manager.robots:
+                    pass
+            rospy.sleep(1)
 
     except Exception as e:
         rospy.logfatal('[detection_manager]: Exception %s', str(e.message) + str(e.args))

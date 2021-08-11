@@ -21,7 +21,6 @@
     <arg name="tf_prefix" value="$(arg robot_ns)"/>
     <param name="tf_prefix" value="$(arg tf_prefix)"/>
     <param name="robot_type" value="$(arg robot_type)"/>
-    <rosparam file="$(find costmap_merge)/config/handshake.yaml" command="load"/>
     <include file="$(find costmap_merge)/launch/includes/robot.launch.xml">
       <arg name="base" value="$(arg base)"/>
       <arg name="stacks" value="$(arg stacks)"/>
@@ -32,7 +31,9 @@
       <arg name="width" value="$(arg width)"/>
       <arg name="height" value="$(arg height)"/>
     </include>
-    <node name="detector" pkg="costmap_merge" type="detector.py" output="screen" if="$(eval arg('robot_type') == 'detector')"/>
+    <node name="detector" pkg="costmap_merge" type="detector.py" output="screen" if="$(eval arg('robot_type') == 'detector')">
+      <rosparam file="$(find costmap_merge)/config/detector.yaml" command="load"/>
+    </node>
     <node name="detection_manager" pkg="costmap_merge" type="detection_manager.py" output="screen" if="$(eval arg('robot_type') == 'detector')"/>
     <node name="detection_handshake" pkg="costmap_merge" type="detection_handshake.py" output="screen" if="$(eval arg('robot_type') == 'robot')"/>
 <!--    <node name="costmap_network" pkg="costmap_merge" type="costmap_network.py" output="screen"/>-->

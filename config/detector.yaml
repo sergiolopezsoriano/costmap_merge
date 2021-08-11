@@ -1,0 +1,2 @@
+min_detection_distance: 2
+location_timeout: 60
