@@ -16,15 +16,12 @@ class TransformHelper:
         self.br.sendTransform(transform)
 
     @staticmethod
-    def get_poses_orientation(pose_D_D, pose_R_D, pose_R_R, pose_D_R, alpha, beta):
+    def get_pose_orientation(pose_R_D, pose_R_R, alpha, beta):
         gamma = math.pi + alpha - beta
-        yaw_D_D = PoseHelper.get_yaw_from_orientation(pose_D_D.pose.orientation)
         yaw_R_R = PoseHelper.get_yaw_from_orientation(pose_R_R.pose.orientation)
         yaw_R_D = yaw_R_R + gamma
-        yaw_D_R = yaw_D_D - gamma
         pose_R_D.pose.orientation = PoseHelper.get_orientation_from_yaw(0, 0, yaw_R_D)
-        pose_D_R.pose.orientation = PoseHelper.get_orientation_from_yaw(0, 0, yaw_D_R)
-        return pose_D_R, pose_R_D
+        return pose_R_D
 
     @staticmethod
     def get_frame_transform(pose_R_D, pose_R_R, alpha, beta):

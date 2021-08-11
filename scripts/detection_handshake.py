@@ -30,11 +30,9 @@ class DetectionHandshake:
                 between both positions. """
         pose_D_R = self.find_detector_in_costmap(msg.detector_ns)
         pose_R_R = PoseHelper.get_pose_from_odom(self.robots[self.namespace].odom)
-        self.calculate_transformed_odom(self.namespace)
         beta = math.atan2(pose_D_R.pose.position.y - pose_R_R.pose.position.y,
                           pose_D_R.pose.position.x - pose_R_R.pose.position.x)
-        self.handshake2(msg.detector_ns, msg.pose_D_D, msg.pose_R_D, msg.alpha, self.namespace, pose_D_R, pose_R_R,
-                        beta)
+        self.handshake2(msg.detector_ns, msg.pose_R_D, pose_R_R, msg.alpha, beta)
         return Handshake1Response()
 
     def find_detector_in_costmap(self, robot):
@@ -64,18 +62,16 @@ class DetectionHandshake:
         pose_D_R = PoseHelper.set_2D_pose(str(self.namespace) + '/odom', rospy.Time.now(), [x, y, 0, 0, 0, 0])
         return pose_D_R
 
-    def handshake2(self, detector_ns, pose_D_D, pose_R_D, alpha, robot_ns, pose_D_R, pose_R_R, beta):
+    def handshake2(self, detector_ns, pose_R_D, pose_R_R, alpha, beta):
         """ Sends the detector and robot poses in the detector frame to the detection_manager node in the Detector """
-        pose_D_R, pose_R_D = TransformHelper.get_poses_orientation(pose_D_D, pose_R_D, pose_R_R, pose_D_R, alpha, beta)
+        pose_R_D = TransformHelper.get_pose_orientation(pose_R_D, pose_R_R, alpha, beta)
         try:
-            self.handshake2_proxies[detector_ns](detector_ns, pose_D_D, pose_R_D, alpha, robot_ns, pose_D_R, pose_R_R,
-                                                 beta)
+            self.handshake2_proxies[detector_ns](self.namespace, pose_R_D, pose_R_R, alpha, beta)
         except KeyError:
             rospy.wait_for_service('/' + detector_ns + '/handshake2_service')
             self.handshake2_proxies[detector_ns] = rospy.ServiceProxy('/' + detector_ns + '/handshake2_service',
                                                                       Handshake2)
-            self.handshake2_proxies[detector_ns](detector_ns, pose_D_D, pose_R_D, alpha, robot_ns, pose_D_R, pose_R_R,
-                                                 beta)
+            self.handshake2_proxies[detector_ns](self.namespace, pose_R_D, pose_R_R, alpha, beta)
 
 
 if __name__ == "__main__":

@@ -21,8 +21,11 @@ detector1:
   coordinates: [0, 0, 0, 0, 0, 1.57]  # x, y, z, roll, pitch, yaw
   costmap: [3, 3]  # width, height
 robot1:
-  coordinates: [-1, 0, 0, 0, 0, -1.57]
+  coordinates: [-1, 2, 0, 0, 0, -1.57]
   costmap: [3, 3]
 robot2:
   coordinates: [3, 0, 0, 0, 0, 3.14]
   costmap: [3, 3]
+
+# More costmap parameters
+costmap_resolution: 0.05

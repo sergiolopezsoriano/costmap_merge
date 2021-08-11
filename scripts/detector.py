@@ -45,7 +45,7 @@ class Detector:
                 if d < self.min_detection_distance:
                     if robot not in self.detected_robots:
                         self.detected_robots.append(robot)
-                    self.last_detection_time[robot] = rospy.Time.now().to_sec()
+                    # self.last_detection_time[robot] = rospy.Time.now().to_sec()
 
     def set_map_poses(self):
         """ At this stage, we don't know other robots start.pose, therefore we wouldn't be able to calculate the
@@ -70,10 +70,6 @@ class Detector:
                  robots cartesian coordinates in the emulated map frame. """
         pose_D_D = PoseHelper.get_pose_from_odom(self.robots[self.namespace].odom)
         pose_R_D = self.get_pose_R_D(robot)
-        # alpha = math.atan2(self.robots[robot].transformed_odom.pose.position.y - self.robots[
-        #     self.namespace].transformed_odom.pose.position.y,
-        #                    self.robots[robot].transformed_odom.pose.position.x - self.robots[
-        #                        self.namespace].transformed_odom.pose.position.x)
         alpha = math.atan2(pose_R_D.pose.position.y - pose_D_D.pose.position.y,
                            pose_R_D.pose.position.x - pose_D_D.pose.position.x)
         self.handshake1(robot, pose_D_D, pose_R_D, alpha)
@@ -114,8 +110,8 @@ if __name__ == "__main__":
         while not rospy.is_shutdown():
             detector.detect_robots()
             for rb in detector.detected_robots:
-                if rospy.Time.now().to_sec() < detector.last_detection_time[rb] + detector.location_timeout:
-                    detector.locate_robot(rb)
+                # if rospy.Time.now().to_sec() < detector.last_detection_time[rb] + detector.location_timeout:
+                detector.locate_robot(rb)
             rospy.sleep(1)
 
     except Exception as e:

@@ -16,6 +16,7 @@ class RobotLauncher:
         self.package = rospkg.get_package_name(self.robot_launch_file)
         self.random_pose = rospy.get_param('~random_pose')
         self.random_costmap_dimensions = rospy.get_param('~random_costmap_dimensions')
+        self.resolution = rospy.get_param('~costmap_resolution')
         self.args = list()
         self.robots_names = list()
 
@@ -48,7 +49,7 @@ class RobotLauncher:
             width, height = rospy.get_param('~' + robot_ns + '/costmap')
         args = ['robot_ns:=' + str(robot_ns), 'robot_type:=' + str(robot_type), 'x:=' + str(x), 'y:=' + str(y),
                 'z:=' + str(z), 'roll:=' + str(roll), 'pitch:=' + str(pitch), 'yaw:=' + str(yaw),
-                'width:=' + str(width), 'height:=' + str(height)]
+                'width:=' + str(width), 'height:=' + str(height), 'resolution:=' + str(self.resolution)]
         return args
 
     @staticmethod

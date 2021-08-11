@@ -4,31 +4,53 @@ import traceback
 import rospy
 from nav_msgs.msg import OccupancyGrid
 import numpy as np
-from costmap_merge.srv import RobotUpdate, RobotUpdateResponse
+from costmap_merge.msg import RobotList
 from nodes import CostmapNode
 from helpers import TransformHelper, PoseHelper
 import math
+import tf2_ros
 
 
 class CostmapNetwork:
     def __init__(self):
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')
-        self.type = rospy.get_param('~robot_type')
-        # Server for creating and updating robots
-        self.service = rospy.Service('update_robots', RobotUpdate, self.cb_update_robot)
+        # Transform managers
+        tfBuffer = tf2_ros.Buffer()
+        listener = tf2_ros.TransformListener(tfBuffer)
         # Costmap information
         self.occupancy_range = 100
+        # Subscriber to the detected robots topic
+        rospy.Subscriber('/detected_robots_topic', RobotList, self.cb_get_robot_names, queue_size=10)
+        # Costmap
+        self.merged_global_costmap = OccupancyGrid()
+        # Costmap Publishers
+        self.local_publisher = rospy.Publisher('/' + self.namespace + '/move_base/local_costmap/costmap',
+                                               OccupancyGrid, queue_size=1)
+        self.global_publisher = rospy.Publisher('/' + self.namespace + '/move_base/global_costmap/costmap',
+                                                OccupancyGrid, queue_size=1)
         # Dictionary for the costmap_network nodes
         self.robots = dict()
-        # Creating the costmap network with one costmap node
-        self.robots[self.namespace] = CostmapNode(self.namespace, self.type)
+        # Creating the costmap network with this costmap node
+        self.robots[self.namespace] = CostmapNode(self.namespace)
 
-    def cb_update_robot(self, msg):
-        if msg.namespace not in self.robots:
-            self.robots[msg.namespace] = CostmapNode(msg.namespace, msg.type)
-        self.robots[msg.namespace].transformed = msg.pose
-        return RobotUpdateResponse(True)
+    def cb_get_robot_names(self, msg):
+        if msg.robot_ns not in self.robots:
+            self.robots[msg.robot_ns] = CostmapNode(msg.robot_ns)
+        rate = rospy.Rate(10.0)
+        while not rospy.is_shutdown():
+            try:
+                t = self.tfBuffer.lookup_transform('/' + str(msg.robot_ns) + '/odom',
+                                                   '/' + str(self.namespace) + '/odom',  rospy.Time())
+                self.robots[msg.robot_ns].set_start_from_transform(t)
+            except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
+                rate.sleep()
+                continue
+
+    def publish_costmap(self):
+        if self.robots[self.namespace].local_ready:
+            self.global_publisher.publish(self.merged_global_costmap)
+            self.local_publisher.publish(self.robots[self.namespace].local_costmap)
 
     def build_global_costmap(self):
         try:
@@ -102,7 +124,7 @@ class CostmapNetwork:
 
     def add_costmap(self, robot, global_costmap, robot_xmin, robot_ymin):
         # Taking into account the starting angle
-        yaw = TransformHelper.get_yaw_from_orientation(self.robots[robot].pose.pose.orientation)
+        yaw = PoseHelper.get_yaw_from_orientation(self.robots[robot].start.pose.orientation)
         data = self.rotate_costmap(yaw, robot)
         pos_x = int((self.robots[robot].start.pose.position.x + self.robots[robot].odom.pose.pose.position.x * np.cos(
             yaw) - self.robots[robot].odom.pose.pose.position.y * np.sin(yaw) - self.robots[
@@ -134,7 +156,7 @@ class CostmapNetwork:
         width1 = self.robots[robot].local_costmap.info.width
         height1 = self.robots[robot].local_costmap.info.height
         d = math.sqrt((resol * width1) ** 2 + (resol * height1) ** 2)
-        theta = math.atan2(height1 / width1)
+        theta = math.atan2(height1, width1)
         height2 = abs(d * math.sin(abs(angle) + theta))
         width2 = abs(d * math.cos(abs(angle) - theta))
         if height2 % resol == 0:
@@ -184,7 +206,7 @@ class CostmapNetwork:
         for row in range(height1):
             for col in range(width1):
                 point1 = [xo1 + row * resol, yo1 + col * resol]
-                point2 = TransformHelper.rotate(origin, point1, angle)
+                point2 = PoseHelper.rotate(origin, point1, angle)
                 # index_x = list(filter(lambda i: i > point2[0], x1))[0]
                 # index_y = list(filter(lambda i: i > point2[1], y1))[0]
                 for value in x1:
@@ -223,6 +245,7 @@ if __name__ == "__main__":
             rospy.sleep(1)
         while not rospy.is_shutdown():
             costmap_network.merged_global_costmap = costmap_network.build_global_costmap()
+            costmap_network.publish_costmap()
 
     except Exception as e:
         rospy.logfatal('[costmap_network]: Exception %s', str(e.message) + str(e.args))

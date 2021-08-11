@@ -1,4 +1,0 @@
-geometry_msgs/TransformStamped pose_tf_D_R
-geometry_msgs/TransformStamped frame_tf_D_R
-geometry_msgs/TransformStamped pose_tf_R_D
-geometry_msgs/TransformStamped frame_tf_R_D
