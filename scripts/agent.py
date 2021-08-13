@@ -8,7 +8,7 @@ from costmap_merge.srv import Handshake1, Handshake2, Handshake1Response
 from helpers import TransformHelper, PoseHelper
 
 
-class DetectionHandshake:
+class Agent:
     def __init__(self):
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')
@@ -19,7 +19,7 @@ class DetectionHandshake:
         for robot in self.robots_names:
             self.robots[robot] = OdomNode(robot)
             coordinates = rospy.get_param('/simulation_launcher/' + str(robot) + '/coordinates')
-            self.robots[robot].set_start_pose('/map', rospy.Time.now(), coordinates)
+            self.robots[robot].set_start_from_coordinates('/map', rospy.Time.now(), coordinates)
         # Service to receive the robot poses in the detector's frame
         rospy.Service('handshake1_service', Handshake1, self.detector_call)
         # Initializes the proxies dictionary to communicate with the detection_manager node
@@ -77,12 +77,12 @@ class DetectionHandshake:
 if __name__ == "__main__":
 
     try:
-        rospy.init_node('detection_handshake', log_level=rospy.INFO)
-        rospy.loginfo('[detection_handshake]: Node started')
-        detection_handshake = DetectionHandshake()
+        rospy.init_node('agent', log_level=rospy.INFO)
+        rospy.loginfo('[agent]: Node started')
+        detection_handshake = Agent()
         rospy.spin()
 
     except Exception as e:
-        rospy.logfatal('[detection_handshake]: Exception %s', str(e.message) + str(e.args))
+        rospy.logfatal('[agent]: Exception %s', str(e.message) + str(e.args))
         e = traceback.format_exc()
         rospy.logfatal(e)

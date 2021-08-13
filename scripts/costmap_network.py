@@ -4,7 +4,7 @@ import traceback
 import rospy
 from nav_msgs.msg import OccupancyGrid
 import numpy as np
-from costmap_merge.msg import RobotList
+from costmap_merge.msg import RobotName
 from nodes import CostmapNode
 from helpers import TransformHelper, PoseHelper
 import math
@@ -16,12 +16,14 @@ class CostmapNetwork:
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')
         # Transform managers
-        tfBuffer = tf2_ros.Buffer()
-        listener = tf2_ros.TransformListener(tfBuffer)
+        self.tfBuffer = tf2_ros.Buffer()
+        self.listener = tf2_ros.TransformListener(self.tfBuffer)
+        # Timeout to discard the robot transform
+        self.location_timeout = rospy.get_param('~transform_timeout')
         # Costmap information
         self.occupancy_range = 100
         # Subscriber to the detected robots topic
-        rospy.Subscriber('/detected_robots_topic', RobotList, self.cb_get_robot_names, queue_size=10)
+        rospy.Subscriber('/detected_robots_topic', RobotName, self.cb_get_robot_transform, queue_size=10)
         # Costmap
         self.merged_global_costmap = OccupancyGrid()
         # Costmap Publishers
@@ -33,24 +35,26 @@ class CostmapNetwork:
         self.robots = dict()
         # Creating the costmap network with this costmap node
         self.robots[self.namespace] = CostmapNode(self.namespace)
+        self.robots[self.namespace].set_start_at_origin('/' + str(self.namespace) + '/odom', rospy.Time.now())
 
-    def cb_get_robot_names(self, msg):
+    def cb_get_robot_transform(self, msg):
         if msg.robot_ns not in self.robots:
             self.robots[msg.robot_ns] = CostmapNode(msg.robot_ns)
-        rate = rospy.Rate(10.0)
-        while not rospy.is_shutdown():
-            try:
-                t = self.tfBuffer.lookup_transform('/' + str(msg.robot_ns) + '/odom',
-                                                   '/' + str(self.namespace) + '/odom',  rospy.Time())
-                self.robots[msg.robot_ns].set_start_from_transform(t)
-            except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException):
-                rate.sleep()
-                continue
+        rospy.sleep(1)  # waiting for the detection manager to broadcast the transform
+        try:
+            t = self.tfBuffer.lookup_transform(str(self.namespace) + '/odom',
+                                               str(msg.robot_ns) + '/odom',  rospy.Time())
+            self.robots[msg.robot_ns].set_start_from_transform(t)
+        except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as exception:
+            rospy.logfatal('[costmap_network]: Exception %s', str(exception.message) + str(exception.args))
 
     def publish_costmap(self):
         if self.robots[self.namespace].local_ready:
             self.global_publisher.publish(self.merged_global_costmap)
             self.local_publisher.publish(self.robots[self.namespace].local_costmap)
+
+    # def check_transform_time(self):
+    #     if self.
 
     def build_global_costmap(self):
         try:
@@ -67,16 +71,14 @@ class CostmapNetwork:
             for robot in self.robots:
                 while not self.robots[robot].local_ready:
                     rospy.sleep(1)
-
-                yaw = PoseHelper.get_yaw_from_orientation(self.robots[robot].start.pose.orientation)
+                self.robots[robot].yaw = PoseHelper.get_yaw_from_orientation(self.robots[robot].start.pose.orientation)
                 self.robots[robot].x = self.robots[robot].start.pose.position.x + self.robots[
-                    robot].odom.pose.pose.position.x * np.cos(yaw) - self.robots[
-                    robot].odom.pose.pose.position.y * np.sin(yaw)
+                    robot].odom.pose.pose.position.x * np.cos(self.robots[robot].yaw) - self.robots[
+                    robot].odom.pose.pose.position.y * np.sin(self.robots[robot].yaw)
                 self.robots[robot].y = self.robots[robot].start.pose.position.y + self.robots[
-                    robot].odom.pose.pose.position.y * np.cos(yaw) + self.robots[
-                    robot].odom.pose.pose.position.x * np.sin(yaw)
-
-                self.calculate_costmap_size(yaw, robot)
+                    robot].odom.pose.pose.position.y * np.cos(self.robots[robot].yaw) + self.robots[
+                    robot].odom.pose.pose.position.x * np.sin(self.robots[robot].yaw)
+                self.calculate_costmap_size(robot)
                 x_min_list.append(
                     self.robots[robot].x - self.robots[robot].roloco_width * global_costmap.info.resolution / 2)
                 x_max_list.append(
@@ -85,6 +87,7 @@ class CostmapNetwork:
                     self.robots[robot].y - self.robots[robot].roloco_height * global_costmap.info.resolution / 2)
                 y_max_list.append(
                     self.robots[robot].y + self.robots[robot].roloco_height * global_costmap.info.resolution / 2)
+
             for robot in self.robots:
                 if min(x_min_list) == self.robots[robot].x - self.robots[robot].roloco_width * global_costmap.info.resolution / 2:
                     robot_xmin = robot
@@ -118,21 +121,23 @@ class CostmapNetwork:
                 robot_xmin].roloco_width / 2 * global_costmap.info.resolution
             global_costmap.info.origin.position.y = self.robots[robot_ymin].y - self.robots[
                 robot_ymin].roloco_height / 2 * global_costmap.info.resolution
+            global_costmap.info.origin.orientation = self.robots[self.namespace].start.pose.orientation
+            global_costmap.header.frame_id = str(self.namespace) + '/odom'
             return global_costmap
-        except:
+        except Exception as exception:
+            rospy.logfatal('Build global costmap error: ' + str(exception))
             return OccupancyGrid()
 
     def add_costmap(self, robot, global_costmap, robot_xmin, robot_ymin):
         # Taking into account the starting angle
-        yaw = PoseHelper.get_yaw_from_orientation(self.robots[robot].start.pose.orientation)
-        data = self.rotate_costmap(yaw, robot)
+        data = self.rotate_costmap(robot)
         pos_x = int((self.robots[robot].start.pose.position.x + self.robots[robot].odom.pose.pose.position.x * np.cos(
-            yaw) - self.robots[robot].odom.pose.pose.position.y * np.sin(yaw) - self.robots[
-                         robot_xmin].x) / global_costmap.info.resolution) + self.robots[
+            self.robots[robot].yaw) - self.robots[robot].odom.pose.pose.position.y * np.sin(self.robots[robot].yaw) -
+                     self.robots[robot_xmin].x) / global_costmap.info.resolution) + self.robots[
                     robot_xmin].roloco_width / 2 - self.robots[robot].roloco_width / 2
         pos_y = int((self.robots[robot].start.pose.position.y + self.robots[robot].odom.pose.pose.position.y * np.cos(
-            yaw) + self.robots[robot].odom.pose.pose.position.x * np.sin(yaw) - self.robots[
-                         robot_ymin].y) / global_costmap.info.resolution) + self.robots[
+            self.robots[robot].yaw) + self.robots[robot].odom.pose.pose.position.x * np.sin(self.robots[robot].yaw) -
+                     self.robots[robot_ymin].y) / global_costmap.info.resolution) + self.robots[
                     robot_ymin].roloco_height / 2 - self.robots[robot].roloco_height / 2
 
         for row in range(self.robots[robot].roloco_height):
@@ -141,7 +146,6 @@ class CostmapNetwork:
                                 (row + pos_y) * global_costmap.info.width + pos_x +
                                 self.robots[robot].roloco_width] = \
                 data[row_start:row_start + self.robots[robot].roloco_width]
-        return global_costmap
 
         ####################### overlapping costmaps ########################
         # for row in range(self.robots[robot].local_costmap.info.height):
@@ -151,26 +155,30 @@ class CostmapNetwork:
         #             global_costmap.data[(row + pos_y) * global_costmap.info.width + pos_x + col] = \
         #                 data[row * self.robots[robot].local_costmap.info.width + col]
 
-    def calculate_costmap_size(self, angle, robot):
+        return global_costmap
+
+    def calculate_costmap_size(self, robot):
         resol = self.robots[robot].local_costmap.info.resolution
         width1 = self.robots[robot].local_costmap.info.width
         height1 = self.robots[robot].local_costmap.info.height
         d = math.sqrt((resol * width1) ** 2 + (resol * height1) ** 2)
         theta = math.atan2(height1, width1)
-        height2 = abs(d * math.sin(abs(angle) + theta))
-        width2 = abs(d * math.cos(abs(angle) - theta))
-        if height2 % resol == 0:
-            height2 = int(height2 / resol)
-        else:
-            height2 = int(height2 / resol) + 1
-        if width2 % resol == 0:
-            width2 = int(width2 / resol)
-        else:
-            width2 = int(width2 / resol) + 1
+        height2 = abs(d * math.sin(abs(self.robots[robot].yaw) + theta))
+        width2 = abs(d * math.cos(abs(self.robots[robot].yaw) - theta))
+        # if height2 % resol == 0:
+        #     height2 = int(height2 / resol)
+        # else:
+        #     height2 = int(height2 / resol) + 1
+        # if width2 % resol == 0:
+        #     width2 = int(width2 / resol)
+        # else:
+        #     width2 = int(width2 / resol) + 1
+        height2 = int(height2 / resol)
+        width2 = int(width2 / resol)
         self.robots[robot].roloco_width = max(width1, width2)
         self.robots[robot].roloco_height = max(height1, height2)
 
-    def rotate_costmap(self, angle, robot):  # angle in radians
+    def rotate_costmap(self, robot):
         # a = rospy.get_rostime()
         resol = self.robots[robot].local_costmap.info.resolution
         width1 = self.robots[robot].local_costmap.info.width
@@ -203,10 +211,11 @@ class CostmapNetwork:
         index_y = 0
         # b = rospy.get_rostime()
         # rospy.loginfo('[' + str(self.namespace) + '-' + str(robot) + '] b: ' + str(b.secs - a.secs))
+        # rospy.loginfo('[' + str(self.namespace) + '-' + str(robot) + '] yaw: ' + str(self.robots[robot].yaw))
         for row in range(height1):
             for col in range(width1):
                 point1 = [xo1 + row * resol, yo1 + col * resol]
-                point2 = PoseHelper.rotate(origin, point1, angle)
+                point2 = PoseHelper.rotate(origin, point1, self.robots[robot].yaw)
                 # index_x = list(filter(lambda i: i > point2[0], x1))[0]
                 # index_y = list(filter(lambda i: i > point2[1], y1))[0]
                 for value in x1:
@@ -226,7 +235,8 @@ class CostmapNetwork:
                     if data2[row][col] == 0 and (data2[row - 1][col] != 0) and (data2[row + 1][col] != 0) and (data2[row][col - 1] != 0) and (data2[row][col + 1] != 0):
                         data2[row][col] = (data2[row - 1][col] + data2[row + 1][col] + data2[row][col - 1] + data2[row][
                             col + 1]) / 4
-                except:
+                except Exception as exception:
+                    # rospy.logfatal('rotate costmap error: ' + str(exception))
                     pass
         # d = rospy.get_rostime()
         # rospy.loginfo('[' + str(self.namespace) + '-' + str(robot) + '] d: ' + str(d.secs - a.secs))

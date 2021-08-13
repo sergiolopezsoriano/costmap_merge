@@ -164,8 +164,8 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/detector.py
   scripts/costmap_network.py
-  scripts/detection_handshake.py
-  scripts/detection_manager.py
+  scripts/agent.py
+  scripts/transform_manager.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

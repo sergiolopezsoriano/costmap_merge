@@ -31,8 +31,11 @@ class OdomNode(object):
         self.start.pose.position = t.transform.translation
         self.start.pose.orientation = t.transform.rotation
 
-    def set_start_pose(self, frame_id, time_stamp, coordinates):
+    def set_start_from_coordinates(self, frame_id, time_stamp, coordinates):
         self.start = PoseHelper.set_2D_pose(frame_id, time_stamp, coordinates)
+
+    def set_start_at_origin(self, frame_id, time_stamp):
+        self.start = PoseHelper.set_2D_pose(frame_id, time_stamp, [0, 0, 0, 0, 0, 0])
 
     def set_transformed_odom(self, frame_id, time_stamp, coordinates):
         self.transformed_odom = PoseHelper.set_2D_pose(frame_id, time_stamp, coordinates)
@@ -41,9 +44,10 @@ class OdomNode(object):
 class CostmapNode(OdomNode):
     def __init__(self, namespace):
         super(CostmapNode, self).__init__(namespace)
-        # temporal coordinates
+        # coordinates made constant during a costmap building iteration
         self.x = float()
         self.y = float()
+        self.yaw = float()
         # Costmap
         self.local_costmap = OccupancyGrid()
         # Rotated local costmap dimensions

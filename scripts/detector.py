@@ -22,13 +22,9 @@ class Detector:
         for robot in self.robots_names:
             self.robots[robot] = OdomNode(robot)
             coordinates = rospy.get_param('/simulation_launcher/' + str(robot) + '/coordinates')
-            self.robots[robot].set_start_pose('/map', rospy.Time.now(), coordinates)
+            self.robots[robot].set_start_from_coordinates('/map', rospy.Time.now(), coordinates)
         # Initializes the proxies dictionary to communicate with the detection_handshake node
         self.handshake1_proxies = dict()
-        # Timeout for the robot location
-        self.location_timeout = rospy.get_param('~location_timeout')
-        # Dictionary containing the elapsed times since the robots were last detected
-        self.last_detection_time = dict()
         # List with the detected robots
         self.detected_robots = list()
 
@@ -45,7 +41,6 @@ class Detector:
                 if d < self.min_detection_distance:
                     if robot not in self.detected_robots:
                         self.detected_robots.append(robot)
-                    # self.last_detection_time[robot] = rospy.Time.now().to_sec()
 
     def set_map_poses(self):
         """ At this stage, we don't know other robots start.pose, therefore we wouldn't be able to calculate the
@@ -110,7 +105,6 @@ if __name__ == "__main__":
         while not rospy.is_shutdown():
             detector.detect_robots()
             for rb in detector.detected_robots:
-                # if rospy.Time.now().to_sec() < detector.last_detection_time[rb] + detector.location_timeout:
                 detector.locate_robot(rb)
             rospy.sleep(1)
 
