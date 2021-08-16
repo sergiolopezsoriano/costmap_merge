@@ -12,7 +12,7 @@ class Agent:
     def __init__(self):
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')
-        self.type = rospy.get_param('/' + str(self.namespace) + '/robot_type')
+        self.robot_type = rospy.get_param('/' + str(self.namespace) + '/robot_type')
         self.robots_names = rospy.get_param('/simulation_launcher/robots_names')
         # OdomNode dictionary of all the simulated robots
         self.robots = dict()
@@ -21,13 +21,13 @@ class Agent:
             coordinates = rospy.get_param('/simulation_launcher/' + str(robot) + '/coordinates')
             self.robots[robot].set_start_from_coordinates('/map', rospy.Time.now(), coordinates)
         # Service to receive the robot poses in the detector's frame
-        rospy.Service('handshake1_service', Handshake1, self.detector_call)
+        rospy.Service('handshake1_service', Handshake1, self.cb_handshake1)
         # Initializes the proxies dictionary to communicate with the detection_manager node
         self.handshake2_proxies = dict()
 
-    def detector_call(self, msg):
+    def cb_handshake1(self, msg):
         """ The detector calls providing its position, the agent's position in the detector's odom frame and the angle
-                between both positions. """
+                between both positions. If two detectors """
         pose_D_R = self.find_detector_in_costmap(msg.detector_ns)
         pose_R_R = PoseHelper.get_pose_from_odom(self.robots[self.namespace].odom)
         beta = math.atan2(pose_D_R.pose.position.y - pose_R_R.pose.position.y,

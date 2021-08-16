@@ -14,7 +14,6 @@ class Detector:
                 common frame where the calculation of distances and relationships between poses are possible. """
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')
-        self.type = rospy.get_param('/' + str(self.namespace) + '/robot_type')
         self.robots_names = rospy.get_param('/simulation_launcher/robots_names')
         self.min_detection_distance = rospy.get_param('~min_detection_distance')
         # OdomNode dictionary of all the simulated robots

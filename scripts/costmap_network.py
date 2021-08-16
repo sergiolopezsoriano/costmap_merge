@@ -42,8 +42,7 @@ class CostmapNetwork:
             self.robots[msg.robot_ns] = CostmapNode(msg.robot_ns)
         rospy.sleep(1)  # waiting for the detection manager to broadcast the transform
         try:
-            t = self.tfBuffer.lookup_transform(str(self.namespace) + '/odom',
-                                               str(msg.robot_ns) + '/odom',  rospy.Time())
+            t = self.tfBuffer.lookup_transform(self.namespace + '/odom', msg.robot_ns + '/odom',  rospy.Time())
             self.robots[msg.robot_ns].set_start_from_transform(t)
         except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as exception:
             rospy.logfatal('[costmap_network]: Exception %s', str(exception.message) + str(exception.args))
@@ -52,9 +51,6 @@ class CostmapNetwork:
         if self.robots[self.namespace].local_ready:
             self.global_publisher.publish(self.merged_global_costmap)
             self.local_publisher.publish(self.robots[self.namespace].local_costmap)
-
-    # def check_transform_time(self):
-    #     if self.
 
     def build_global_costmap(self):
         try:
