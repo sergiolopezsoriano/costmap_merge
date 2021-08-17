@@ -5,7 +5,7 @@ import rospy
 from nav_msgs.msg import OccupancyGrid
 import numpy as np
 from costmap_merge.msg import RobotName
-from nodes import CostmapNode
+from robots import CostmapRobot
 from helpers import TransformHelper, PoseHelper
 import math
 import tf2_ros
@@ -34,12 +34,12 @@ class CostmapNetwork:
         # Dictionary for the costmap_network nodes
         self.robots = dict()
         # Creating the costmap network with this costmap node
-        self.robots[self.namespace] = CostmapNode(self.namespace)
+        self.robots[self.namespace] = CostmapRobot(self.namespace)
         self.robots[self.namespace].set_start_at_origin('/' + str(self.namespace) + '/odom', rospy.Time.now())
 
     def cb_get_robot_transform(self, msg):
         if msg.robot_ns not in self.robots:
-            self.robots[msg.robot_ns] = CostmapNode(msg.robot_ns)
+            self.robots[msg.robot_ns] = CostmapRobot(msg.robot_ns)
         rospy.sleep(1)  # waiting for the detection manager to broadcast the transform
         try:
             t = self.tfBuffer.lookup_transform(self.namespace + '/odom', msg.robot_ns + '/odom',  rospy.Time())

@@ -166,7 +166,7 @@ catkin_install_python(PROGRAMS
   scripts/detector.py
   scripts/costmap_network.py
   scripts/agent.py
-  scripts/transform_manager.py
+  scripts/tf_tree_manager.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

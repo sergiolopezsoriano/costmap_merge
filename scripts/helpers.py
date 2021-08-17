@@ -2,18 +2,13 @@
 
 import rospy
 import tf
-from tf2_ros import TransformBroadcaster
 from geometry_msgs.msg import PoseStamped, TransformStamped, Quaternion
 import math
 
 
 class TransformHelper:
-
     def __init__(self):
-        self.br = TransformBroadcaster()
-
-    def publish_transform(self, transform):
-        self.br.sendTransform(transform)
+        pass
 
     @staticmethod
     def get_pose_orientation(pose_R_D, pose_R_R, alpha, beta):

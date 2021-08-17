@@ -2,7 +2,7 @@
 
 import rospy
 import traceback
-from nodes import OdomNode
+from robots import OdomRobot
 import math
 from costmap_merge.srv import Handshake1, Handshake2, Handshake1Response
 from helpers import TransformHelper, PoseHelper
@@ -17,7 +17,7 @@ class Agent:
         # OdomNode dictionary of all the simulated robots
         self.robots = dict()
         for robot in self.robots_names:
-            self.robots[robot] = OdomNode(robot)
+            self.robots[robot] = OdomRobot(robot)
             coordinates = rospy.get_param('/simulation_launcher/' + str(robot) + '/coordinates')
             self.robots[robot].set_start_from_coordinates('/map', rospy.Time.now(), coordinates)
         # Service to receive the robot poses in the detector's frame

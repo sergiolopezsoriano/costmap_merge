@@ -6,7 +6,7 @@ from helpers import PoseHelper
 from geometry_msgs.msg import PoseStamped
 
 
-class OdomNode(object):
+class OdomRobot(object):
     def __init__(self, namespace):
         self.namespace = namespace
         # Starting relative pose to the map TODO: apply changes for real operation
@@ -41,9 +41,9 @@ class OdomNode(object):
         self.transformed_odom = PoseHelper.set_2D_pose(frame_id, time_stamp, coordinates)
 
 
-class CostmapNode(OdomNode):
+class CostmapRobot(OdomRobot):
     def __init__(self, namespace):
-        super(CostmapNode, self).__init__(namespace)
+        super(CostmapRobot, self).__init__(namespace)
         # coordinates made constant during a costmap building iteration
         self.x = float()
         self.y = float()

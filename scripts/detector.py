@@ -2,7 +2,7 @@
 
 import rospy
 import traceback
-from nodes import OdomNode
+from robots import OdomRobot
 import math
 from costmap_merge.srv import Handshake1
 from helpers import PoseHelper
@@ -19,7 +19,7 @@ class Detector:
         # OdomNode dictionary of all the simulated robots
         self.robots = dict()
         for robot in self.robots_names:
-            self.robots[robot] = OdomNode(robot)
+            self.robots[robot] = OdomRobot(robot)
             coordinates = rospy.get_param('/simulation_launcher/' + str(robot) + '/coordinates')
             self.robots[robot].set_start_from_coordinates('/map', rospy.Time.now(), coordinates)
         # Initializes the proxies dictionary to communicate with the detection_handshake node
