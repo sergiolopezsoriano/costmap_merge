@@ -15,7 +15,7 @@ class Detector:
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')
         self.robots_names = rospy.get_param('/simulation_launcher/robots_names')
-        self.min_detection_distance = rospy.get_param('~min_detection_distance')
+        self.detection_range = rospy.get_param('~detection_range')
         # OdomNode dictionary of all the simulated robots
         self.robots = dict()
         for robot in self.robots_names:
@@ -37,7 +37,7 @@ class Detector:
                     self.namespace].transformed_odom.pose.position.x) ** 2 + (
                         self.robots[robot].transformed_odom.pose.position.y - self.robots[
                             self.namespace].transformed_odom.pose.position.y) ** 2)
-                if d < self.min_detection_distance:
+                if d < self.detection_range:
                     if robot not in self.detected_robots:
                         self.detected_robots.append(robot)
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-from ..frame_tree import *
+from frame_tree import *
 
 
 a = Node('a')

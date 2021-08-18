@@ -18,13 +18,13 @@ random_costmap_dimensions: False
 
 # Fixed Robot positions and costmap sizes
 detector1:
-  coordinates: [0, 0, 0, 0, 0, 1.57]  # x, y, z, roll, pitch, yaw
+  coordinates: [3, -3, 0, 0, 0, 3.14]  # x, y, z, roll, pitch, yaw
   costmap: [3, 3]  # width, height
 detector2:
   coordinates: [-3, -3, 0, 0, 0, 0]  # x, y, z, roll, pitch, yaw
   costmap: [3, 3]
 robot1:
-  coordinates: [3, -3, 0, 0, 0, 3.14]
+  coordinates: [0, -2, 0, 0, 0, -1.57]
   costmap: [3, 3]
 robot2:
   coordinates: [-3, -3, 0, 0, 0, 0]

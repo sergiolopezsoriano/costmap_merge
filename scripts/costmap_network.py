@@ -4,7 +4,7 @@ import traceback
 import rospy
 from nav_msgs.msg import OccupancyGrid
 import numpy as np
-from costmap_merge.msg import RobotName
+from costmap_merge.msg import RobotName, RobotList
 from robots import CostmapRobot
 from helpers import TransformHelper, PoseHelper
 import math
@@ -23,7 +23,7 @@ class CostmapNetwork:
         # Costmap information
         self.occupancy_range = 100
         # Subscriber to the detected robots topic
-        rospy.Subscriber('/detected_robots_topic', RobotName, self.cb_get_robot_transform, queue_size=10)
+        rospy.Subscriber('/robots', RobotList, self.cb_update_transforms, queue_size=10)
         # Costmap
         self.merged_global_costmap = OccupancyGrid()
         # Costmap Publishers
@@ -37,15 +37,16 @@ class CostmapNetwork:
         self.robots[self.namespace] = CostmapRobot(self.namespace)
         self.robots[self.namespace].set_start_at_origin('/' + str(self.namespace) + '/odom', rospy.Time.now())
 
-    def cb_get_robot_transform(self, msg):
-        if msg.robot_ns not in self.robots:
-            self.robots[msg.robot_ns] = CostmapRobot(msg.robot_ns)
-        rospy.sleep(1)  # waiting for the detection manager to broadcast the transform
-        try:
-            t = self.tfBuffer.lookup_transform(self.namespace + '/odom', msg.robot_ns + '/odom',  rospy.Time())
-            self.robots[msg.robot_ns].set_start_from_transform(t)
-        except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as exception:
-            rospy.logfatal('[costmap_network]: Exception %s', str(exception.message) + str(exception.args))
+    def cb_update_transforms(self, msg):
+        for robot_msg in msg.robot_list:
+            rospy.sleep(1)  # waiting for the detection manager to broadcast the transform
+            try:
+                t = self.tfBuffer.lookup_transform(self.namespace + '/odom', robot_msg.robot_ns + '/odom',  rospy.Time())
+                if robot_msg.robot_ns not in self.robots:
+                    self.robots[robot_msg.robot_ns] = CostmapRobot(robot_msg.robot_ns)
+                self.robots[robot_msg.robot_ns].set_start_from_transform(t)
+            except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as exception:
+                rospy.logwarn('[cb_update_transforms]: Exception %s', str(exception.message) + str(exception.args))
 
     def publish_costmap(self):
         if self.robots[self.namespace].local_ready:
@@ -121,7 +122,7 @@ class CostmapNetwork:
             global_costmap.header.frame_id = str(self.namespace) + '/odom'
             return global_costmap
         except Exception as exception:
-            rospy.logfatal('Build global costmap error: ' + str(exception))
+            rospy.logwarn('[build_global_costmap]: ' + str(exception))
             return OccupancyGrid()
 
     def add_costmap(self, robot, global_costmap, robot_xmin, robot_ymin):

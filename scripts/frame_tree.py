@@ -6,7 +6,7 @@ import rospy
 
 
 class Node:
-    def __init__(self, frame_id, parent_frame=None):
+    def __init__(self, frame_id, parent_frame=''):
         self.frame_id = frame_id
         self.parent_frame = parent_frame
         self.child_frames = dict()
@@ -66,6 +66,7 @@ class FrameListMsgBuilder:
         self.frame_list.detector_ns = self.namespace
 
     def build_frame_list_msg(self, node):
+        self.clear_frame_list()
         self.add_frame_to_frame_list(node)
         self.frame_list.frames = self.frame_ids
         return self.frame_list

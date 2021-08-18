@@ -53,6 +53,8 @@ add_message_files(
   FILES
   Frame.msg
   FrameList.msg
+  RobotName.msg
+  RobotList.msg
 )
 
 ## Generate services in the 'srv' folder

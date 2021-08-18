@@ -1,1 +1,1 @@
-min_detection_distance: 10
+detection_range: 5
