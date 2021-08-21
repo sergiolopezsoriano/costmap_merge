@@ -9,8 +9,8 @@ robot_launch_file: '/home/sergi/catkin_ws/src/costmap_merge/launch/includes/robo
 ##############################################################################
 
 # number of robots. If fixed poses and costmaps are used, don't exceed the number of configuration per robot type.
-num_detectors: 2
-num_robots: 1
+num_detectors: 1
+num_robots: 2
 
 # Set random configuration. If False the fixed robot poses and/or costmap sizes are used.
 random_pose: False

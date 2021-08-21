@@ -4,9 +4,9 @@ import traceback
 import rospy
 from nav_msgs.msg import OccupancyGrid
 import numpy as np
-from costmap_merge.msg import RobotName, RobotList
+from costmap_merge.msg import RobotList
 from robots import CostmapRobot
-from helpers import TransformHelper, PoseHelper
+from helpers import PoseHelper
 import math
 import tf2_ros
 
@@ -38,13 +38,14 @@ class CostmapNetwork:
         self.robots[self.namespace].set_start_at_origin('/' + str(self.namespace) + '/odom', rospy.Time.now())
 
     def cb_update_transforms(self, msg):
-        for robot_msg in msg.robot_list:
+        for robot in msg.robot_list:
             rospy.sleep(1)  # waiting for the detection manager to broadcast the transform
             try:
-                t = self.tfBuffer.lookup_transform(self.namespace + '/odom', robot_msg.robot_ns + '/odom',  rospy.Time())
-                if robot_msg.robot_ns not in self.robots:
-                    self.robots[robot_msg.robot_ns] = CostmapRobot(robot_msg.robot_ns)
-                self.robots[robot_msg.robot_ns].set_start_from_transform(t)
+                t = self.tfBuffer.lookup_transform(self.namespace + '/odom', robot + '/odom',  rospy.Time())
+                if robot not in self.robots:
+                    self.robots[robot] = CostmapRobot(robot)
+                self.robots[robot].set_start_from_transform(t)
+                rospy.loginfo('[Costmap network]: cb_update_transforms... Transform received')
             except (tf2_ros.LookupException, tf2_ros.ConnectivityException, tf2_ros.ExtrapolationException) as exception:
                 rospy.logwarn('[cb_update_transforms]: Exception %s', str(exception.message) + str(exception.args))
 
@@ -253,6 +254,7 @@ if __name__ == "__main__":
         while not rospy.is_shutdown():
             costmap_network.merged_global_costmap = costmap_network.build_global_costmap()
             costmap_network.publish_costmap()
+            rospy.sleep(1)
 
     except Exception as e:
         rospy.logfatal('[costmap_network]: Exception %s', str(e.message) + str(e.args))

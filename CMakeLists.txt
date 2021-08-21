@@ -51,9 +51,9 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
+  TreeQueue.msg
   Frame.msg
   FrameList.msg
-  RobotName.msg
   RobotList.msg
 )
 
@@ -62,6 +62,8 @@ add_service_files(
   FILES
   Handshake1.srv
   Handshake2.srv
+  RobotName.srv
+  TransformerData.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -168,7 +170,8 @@ catkin_install_python(PROGRAMS
   scripts/detector.py
   scripts/costmap_network.py
   scripts/agent.py
-  scripts/tf_tree_manager.py
+  scripts/detection_manager.py
+  scripts/transformer_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

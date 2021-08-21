@@ -1,0 +1,7 @@
+int8 action
+string robot_ns
+geometry_msgs/PoseStamped pose_R_D
+geometry_msgs/PoseStamped pose_R_R
+float64 alpha
+float64 beta
+---

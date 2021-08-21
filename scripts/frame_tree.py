@@ -1,15 +1,25 @@
 #!/usr/bin/env python
 
-
 from costmap_merge.msg import Frame, FrameList
+import time
 import rospy
 
 
 class Node:
-    def __init__(self, frame_id, parent_frame=''):
+    def __init__(self, frame_id, parent_frame='', stamp=time.time()):
         self.frame_id = frame_id
         self.parent_frame = parent_frame
         self.child_frames = dict()
+        self.stamp = stamp
+
+    def update_parent(self, parent_frame):
+        self.parent_frame = parent_frame
+
+    def update_stamp(self, stamp):
+        self.stamp = stamp
+
+    def get_stamp(self):
+        return self.stamp
 
     def create_child(self, child_frame):
         self.child_frames[child_frame] = Node(child_frame, self.frame_id)

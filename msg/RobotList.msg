@@ -1,1 +1,1 @@
-RobotName[] robot_list
+string[] robot_list
