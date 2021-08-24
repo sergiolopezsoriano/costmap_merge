@@ -63,7 +63,7 @@ add_service_files(
   Handshake1.srv
   Handshake2.srv
   RobotName.srv
-  TransformerData.srv
+  Transform.srv
 )
 
 ## Generate actions in the 'action' folder

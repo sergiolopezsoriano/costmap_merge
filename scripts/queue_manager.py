@@ -13,27 +13,28 @@ class QueueManager:
         self.detection_queue = Queue()
         self.detection_publisher = rospy.Publisher('/queue_access', TreeQueue, queue_size=10)
         rospy.Subscriber('/queue_access', TreeQueue, self.cb_detection, queue_size=10)
-        self.received = bool()
+        self.is_my_turn = bool()
 
     def modify_queue(self, mode):
-        self.received = False
+        self.is_my_turn = False
         msg = TreeQueue()
         msg.detector_ns = self.namespace
         msg.mode = mode
-        msg.stamp = rospy.Time.now()
         self.detection_publisher.publish(msg)
 
     def cb_detection(self, msg):
         if msg.mode == TreeQueue.PUSH:
-            self.detection_queue.put({msg.detector_ns: msg.stamp})
+            self.detection_queue.put(msg.detector_ns)
         elif msg.mode == TreeQueue.POP:
-            if msg.detector_ns == self.detection_queue.queue[0].keys()[0]:
+            if msg.detector_ns == self.detection_queue.queue[0]:
                 self.detection_queue.get()
             else:
-                print('QUEUE MANAGER PROBLEM')
-                print('QUEUE MANAGER PROBLEM')
-                print('QUEUE MANAGER PROBLEM')
-                print('QUEUE MANAGER PROBLEM')
-                print('QUEUE MANAGER PROBLEM')
-        if msg.detector_ns == self.namespace:
-            self.received = True
+                rospy.logwarn('[Queue manager]: IRREGULAR ACCESS!')
+                rospy.logwarn('[Queue manager]: QUEUE SEQUENCE HAS BEEN CORRUPTED!!!')
+        try:
+            print('self.queue = ' + str(self.detection_queue.queue))
+            print('self.queue = ' + str(self.detection_queue.queue[0]))
+            if self.detection_queue.queue[0] == self.namespace:
+                self.is_my_turn = True
+        except IndexError:
+            rospy.logwarn('[Queue manager ' + self.namespace + ']: Exception IndexError')
