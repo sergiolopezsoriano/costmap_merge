@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
 from costmap_merge.msg import Frame, FrameList
-from time import time
 import rospy
 
 
 class Node:
-    def __init__(self, frame_id, parent_frame='', stamp=time()):
+    def __init__(self, frame_id, stamp, parent_frame=''):
         self.frame_id = frame_id
         self.parent_frame = parent_frame
         self.child_frames = dict()
@@ -21,8 +20,8 @@ class Node:
     def get_stamp(self):
         return self.stamp
 
-    def create_child(self, child_id):
-        self.child_frames[child_id] = Node(child_id, self.frame_id)
+    def create_child(self, child_id, stamp):
+        self.child_frames[child_id] = Node(child_id, stamp, self.frame_id)
 
     def print_childs(self):
         for child_id in self.child_frames:
@@ -50,10 +49,12 @@ class Node:
     def get_node_list(self, frame_id, node_list1):
         if frame_id == self.frame_id:
             node_list1.append(frame_id)
+            rospy.loginfo('[frame_tree.get_node_list]: node list 1 = ' + node_list1)
             return node_list1
         if self.child_frames:
             for child_id in self.child_frames:
                 node_list2 = self.child_frames[child_id].get_node_list(frame_id, node_list1)
+                rospy.loginfo(node_list2)
                 if node_list2:
                     node_list2.append(self.frame_id)
                     return node_list2
@@ -61,14 +62,16 @@ class Node:
     def delete_node(self, frame_id):
         node_list = list()
         node_list = self.get_node_list(frame_id, node_list)
-        node_list.reverse()
-        branch = 'self'
-        for node in node_list:
-            if node == node_list[0]:
-                pass
-            else:
-                branch = branch + ".child_frames['" + str(node) + "']"
-        exec 'del ' + branch
+        rospy.loginfo('[frame_tree.delete_node]: node list = ' + node_list)
+        if node_list:
+            node_list.reverse()
+            branch = 'self'
+            for node in node_list:
+                if node == node_list[0]:
+                    pass
+                else:
+                    branch = branch + ".child_frames['" + str(node) + "']"
+            exec 'del ' + branch
 
     def get_frame_ids(self, frame_ids):
         frame_ids.append(self.frame_id)
@@ -94,8 +97,8 @@ class FrameListMsgBuilder:
         self.frame_list.detector_ns = self.namespace
 
     def clear_frame_list(self):
-        self.frame_list = FrameList()
-        self.frame_list.detector_ns = self.namespace
+        while self.frame_list.frames:
+            self.frame_list.frames.pop()
 
     def build_frame_list_msg(self, node):
         self.clear_frame_list()
@@ -107,6 +110,7 @@ class FrameListMsgBuilder:
         self.frame_ids.append(node_to_frame_msg(node))
         if node.child_frames:
             for child_id in node.child_frames:
+                rospy.loginfo('add_frame_to_frame_list: child = ' + child_id)
                 self.add_frame_to_frame_list(node.child_frames[child_id])
 
 
@@ -123,9 +127,9 @@ class FrameListMsgParser:
                         found = True
                         break
                 if not found:
-                    self.node_dict[frame.frame_id] = Node(frame.frame_id, frame.parent_frame, frame.stamp)
+                    self.node_dict[frame.frame_id] = Node(frame.frame_id, frame.stamp, frame.parent_frame)
             else:
-                self.node_dict[frame.frame_id] = Node(frame.frame_id, frame.parent_frame, frame.stamp)
+                self.node_dict[frame.frame_id] = Node(frame.frame_id, frame.stamp, frame.parent_frame)
 
         node_dict_keys = self.node_dict.keys()
         removed = list()
@@ -146,6 +150,6 @@ class FrameListMsgParser:
             print('[FrameListMsgParser]: WARNING! duplicated frame ' + str(frame.frame_id))
             return True
         elif self.node_dict[node].get_node(frame.parent_frame):
-            self.node_dict[node].get_node(frame.parent_frame).create_child(frame.frame_id)
+            self.node_dict[node].get_node(frame.parent_frame).create_child(frame.frame_id, frame.stamp)
             return True
         return False

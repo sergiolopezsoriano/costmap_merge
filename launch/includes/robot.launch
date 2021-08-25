@@ -36,7 +36,9 @@
     <node name="detector" pkg="costmap_merge" type="detector.py" output="screen" if="$(eval arg('robot_type') == 'detector')">
       <rosparam file="$(find costmap_merge)/config/detector.yaml" command="load"/>
     </node>
-    <node name="detection_manager" pkg="costmap_merge" type="detection_manager.py" output="screen" if="$(eval arg('robot_type') == 'detector')"/>
+    <node name="detection_manager" pkg="costmap_merge" type="detection_manager.py" output="screen" if="$(eval arg('robot_type') == 'detector')">
+      <rosparam file="$(find costmap_merge)/config/detection_manager.yaml" command="load"/>
+    </node>
     <node name="transform_manager" pkg="costmap_merge" type="transform_manager.py" output="screen" if="$(eval arg('robot_type') == 'detector')"/>
     <node name="agent" pkg="costmap_merge" type="agent.py" output="screen"/>
     <node name="costmap_network" pkg="costmap_merge" type="costmap_network.py" output="screen">

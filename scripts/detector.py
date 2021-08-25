@@ -37,9 +37,12 @@ class Detector:
                     self.namespace].transformed_odom.pose.position.x) ** 2 + (
                         self.robots[robot].transformed_odom.pose.position.y - self.robots[
                             self.namespace].transformed_odom.pose.position.y) ** 2)
-                if d < self.detection_range:
+                if d <= self.detection_range:
                     if robot not in self.detected_robots:
                         self.detected_robots.append(robot)
+                else:
+                    if robot in self.detected_robots:
+                        self.detected_robots.remove(robot)
 
     def set_map_poses(self):
         """ At this stage, we don't know other robots start.pose, therefore we wouldn't be able to calculate the
