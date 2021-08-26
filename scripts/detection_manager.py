@@ -57,28 +57,27 @@ class DetectionManager:
         self.lock.acquire()
         self.queue_manager.modify_queue(TreeQueue.PUSH)
         while not self.queue_manager.is_my_turn:  # waiting for its own callback
-            rospy.loginfo(self.namespace + ' says: it is not my turn')
+            rospy.logdebug('[' + self.namespace + '][detection_manager.cb_handshake2]: is_my_turn check!')
             rospy.sleep(random())
+        my_detector = self.check_world(self.namespace)
+        my_detector_frame_id = None
+        if my_detector:
+            my_detector_frame_id = self.world[my_detector].frame_id
         tree = self.check_world(msg.robot_ns)
-        rospy.loginfo('[' + self.namespace + ']: ')
-        rospy.loginfo(tree)
-        rospy.loginfo('has detected ' + msg.robot_ns + ' first.')
-        rospy.loginfo('frame ids: ' + str(self.tree.get_frame_ids(list())))
-        if tree:
-            rospy.loginfo('[detection_manager ' + self.namespace + ']: time difference ' + str(
-                          rospy.Time.now().to_sec() - self.world[tree].get_node(msg.robot_ns).get_stamp().to_sec()))
+        rospy.logdebug('[' + self.namespace + '][detection_manager.cb_handshake2]: ' + str(tree) + ' has detected ' + msg.robot_ns + ' first.')
+        rospy.logdebug('[' + self.namespace + '][detection_manager.cb_handshake2]: frame ids = ' + str(self.tree.get_frame_ids(list())))
+        if tree and tree != msg.robot_ns and my_detector_frame_id != msg.robot_ns:
+            rospy.logdebug('[' + self.namespace + '][detection_manager.cb_handshake2]: time difference = ' + str(rospy.Time.now().to_sec() - self.world[tree].get_node(msg.robot_ns).get_stamp().to_sec()))
             if rospy.Time.now().to_sec() - self.world[tree].get_node(msg.robot_ns).get_stamp().to_sec() < self.timeout:
-                rospy.loginfo(self.namespace + ' exiting handshake2. ' + msg.robot_ns + ' detected by ' + tree +
-                              ', ' + str(self.timeout) + ' seconds ago.')
+                rospy.logdebug('[' + self.namespace + '][detection_manager.cb_handshake2]: exiting handshake2. ' + msg.robot_ns + ' detected by ' + tree + ', less than ' + str(self.timeout) + ' seconds ago.')
                 self.queue_manager.modify_queue(TreeQueue.POP)
                 self.lock.release()
                 return Handshake2Response()
             else:
-                rospy.loginfo(self.namespace + ': Stopping transform broadcaster and removing node ' + msg.robot_ns +
-                              ' from tree ' + tree)
+                rospy.logdebug('[' + self.namespace + '][detection_manager.cb_handshake2]: Stopping transform broadcaster and removing node ' + msg.robot_ns + ' from tree ' + tree)
                 self.call_transform_manager('STOP', msg, tree)
                 self.remove_node_from_tree(msg.robot_ns, tree)
-        else:
+        else:  # If the robot is not in a tree or the robot in its own tree, therefore a detector
             if not self.tree.get_node(msg.robot_ns):
                 self.tree.create_child(msg.robot_ns, rospy.Time.now())
                 self.update_world()
@@ -92,14 +91,14 @@ class DetectionManager:
         self.publish_robots_list()
         self.queue_manager.modify_queue(TreeQueue.POP)
         self.lock.release()
-        rospy.loginfo(self.namespace + ' END OF THE HANDSHAKE 2')
+        rospy.logdebug('[' + self.namespace + '][detection_manager.cb_handshake2]: END OF THE HANDSHAKE 2')
         return Handshake2Response()
 
     def check_world(self, robot):
         for tree in self.world:
             if tree is not self.namespace:
                 self.robots = list(set(self.world[tree].get_frame_ids(self.robots)))
-                rospy.loginfo(self.namespace + ': robots = ' + str(self.robots))
+                rospy.logdebug('[' + self.namespace + '][detection_manager.check_world]: robots = ' + str(self.robots))
                 if self.world[tree].get_node(robot):
                     return tree
         return None
@@ -107,8 +106,7 @@ class DetectionManager:
     def cb_update_world(self, msg):
         if msg.detector_ns != self.namespace:
             self.world[msg.detector_ns] = self.parser.frame_list_to_node(msg)
-            rospy.loginfo('[cb_update_world ' + self.namespace + ']: ' + msg.detector_ns + ' - ' +
-                          str(self.world[msg.detector_ns].child_frames))
+            rospy.logdebug('[' + self.namespace + '][detection_manager.cb_update_world]: ' + msg.detector_ns + ' has detected ' + str(self.world[msg.detector_ns].child_frames))
 
     def publish_robots_list(self):
         msg = RobotList()
@@ -121,22 +119,22 @@ class DetectionManager:
         self.transform_manager_proxy(msg2)
 
     def remove_node_from_tree(self, frame_id, tree):
-        rospy.loginfo(self.namespace + ' remove_node ' + frame_id + ' from ' + tree + ' world[tree]')
+        rospy.logdebug('[' + self.namespace + '][detection_manager.remove_node]: ' + frame_id + ' from ' + tree + ' world[tree]')
         if tree not in self.remove_node_proxies:
             rospy.wait_for_service('/' + tree + '/remove_node_service')
             self.remove_node_proxies[tree] = rospy.ServiceProxy('/' + tree + '/remove_node_service', RobotName)
         self.remove_node_proxies[tree](frame_id)
 
     def cb_remove_node(self, msg):
-        rospy.loginfo(self.namespace + ' cb_remove_node ' + msg.robot_ns + ' from self.tree')
+        rospy.logdebug('[' + self.namespace + '][detection_manager.cb_remove_node]: ' + msg.robot_ns + ' from self.tree')
         self.tree.delete_node(msg.robot_ns)
         self.update_world()
         return RobotNameResponse()
 
     def update_world(self):
-        rospy.loginfo(self.namespace + ' update_world')
+        rospy.logdebug('[' + self.namespace + '][detection_manager.update_world]: Publishing self.tree')
         frame_list = self.builder.build_frame_list_msg(self.tree)
-        # rospy.loginfo('frame list: ' + str(frame_list.frames))
+        # rospy.logdebug('[' + self.namespace + ' detection_manager]: frame list: ' + str(frame_list.frames))
         self.tree_publisher.publish(frame_list)
         self.world[self.namespace] = self.tree
 
@@ -144,8 +142,8 @@ class DetectionManager:
 if __name__ == "__main__":
 
     try:
-        rospy.init_node('detection_manager', log_level=rospy.INFO)
-        rospy.loginfo('[detection_manager]: Node started')
+        rospy.init_node('detection_manager', log_level=rospy.DEBUG)
+        rospy.logdebug('[detection_manager]: Node started')
         manager = DetectionManager()
         rospy.spin()
 

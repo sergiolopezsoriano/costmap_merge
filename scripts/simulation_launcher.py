@@ -11,7 +11,7 @@ from math import pi
 class RobotLauncher:
     def __init__(self):
         self.num_detectors = rospy.get_param('~num_detectors')
-        self.num_robots = rospy.get_param('~num_robots')
+        self.num_agents = rospy.get_param('~num_agents')
         self.robot_launch_file = rospy.get_param('~robot_launch_file')
         self.package = rospkg.get_package_name(self.robot_launch_file)
         self.random_pose = rospy.get_param('~random_pose')
@@ -27,9 +27,9 @@ class RobotLauncher:
         while self.num_detectors > 0:
             self.args.append((self.robot_launch_file, self.configure_robot('detector', self.num_detectors)))
             self.num_detectors -= 1
-        while self.num_robots > 0:
-            self.args.append((self.robot_launch_file, self.configure_robot('robot', self.num_robots)))
-            self.num_robots -= 1
+        while self.num_agents > 0:
+            self.args.append((self.robot_launch_file, self.configure_robot('agent', self.num_agents)))
+            self.num_agents -= 1
         uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
         roslaunch.configure_logging(uuid)
         parent = roslaunch.parent.ROSLaunchParent(uuid, self.args)

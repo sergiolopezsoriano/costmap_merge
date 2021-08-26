@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
     try:
         rospy.init_node('detector', log_level=rospy.INFO)
-        rospy.loginfo('[detector]: Node started')
+        rospy.logdebug('[detector]: Node started')
         detector = Detector()
         ready = False
         while not ready:

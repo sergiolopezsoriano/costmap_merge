@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     try:
         rospy.init_node('agent', log_level=rospy.INFO)
-        rospy.loginfo('[agent]: Node started')
+        rospy.logdebug('[agent]: Node started')
         detection_handshake = Agent()
         rospy.spin()
 

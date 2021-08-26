@@ -30,13 +30,12 @@ class TransformManager:
         self.transform_msg_queue = Queue()
 
     def cb_select_action(self, msg):
-        rospy.loginfo('[cb_select_action ' + self.namespace + ']: ' + msg.action + ' broadcasting transform from ' +
-                      msg.detector_ns + ' to ' + msg.robot_ns)
+        rospy.logdebug('[' + self.namespace + '][transform_manager.cb_select_action]:  ' + msg.action + ' broadcasting transform from ' + msg.detector_ns + ' to ' + msg.robot_ns)
         self.transform_msg_queue.put(msg)
         return TransformResponse()
 
     def start_broadcasting_transforms(self, msg):
-        rospy.loginfo('Starting ' + self.namespace + ' ' + self.nodes[msg.robot_ns].namespace + 'transform_node_service')
+        rospy.logdebug('[' + self.namespace + '][transform_manager.start_broadcasting_transforms]: Starting ' + self.namespace + ' ' + self.nodes[msg.robot_ns].namespace + 'transform_node_service')
         if msg.robot_ns not in self.node_proxies:
             rospy.wait_for_service(self.nodes[msg.robot_ns].namespace + 'transformer_node_service')
 
@@ -45,19 +44,19 @@ class TransformManager:
         self.node_proxies[msg.robot_ns](msg)
 
     def update_transform(self, msg):
-        rospy.loginfo('Updating ' + self.namespace + ' ' + self.nodes[msg.robot_ns].namespace + 'transform_node_service')
+        rospy.logdebug('[' + self.namespace + '][transform_manager.update_transform]: Updating ' + self.namespace + ' ' + self.nodes[msg.robot_ns].namespace + 'transform_node_service')
         self.node_proxies[msg.robot_ns](msg)
 
     def stop_transformer_node(self, detector_ns, robot_ns):
-        rospy.loginfo('[stop_transformer_node ' + self.namespace + ']: ' + detector_ns + ' to ' + robot_ns)
+        rospy.logdebug('[' + self.namespace + '][transform_manager.stop_transformer_node]: ' + detector_ns + ' to ' + robot_ns)
         if detector_ns not in self.stop_node_proxies:
             rospy.wait_for_service('/' + detector_ns + '/stop_node_service')
             self.stop_node_proxies[detector_ns] = rospy.ServiceProxy('/' + detector_ns + '/stop_node_service', RobotName)
         self.stop_node_proxies[detector_ns](robot_ns)
-        rospy.loginfo('[stop_transformer_node ' + self.namespace + ']: Node ' + robot_ns + ' stopped.')
+        rospy.logdebug('[' + self.namespace + '][transform_manager.stop_transformer_node]: Node ' + robot_ns + ' stopped.')
 
     def cb_stop_transform(self, msg):
-        rospy.loginfo('[cb_stop_transform ' + self.namespace + ']: received ' + msg.robot_ns)
+        rospy.logdebug('[' + self.namespace + '][transform_manager.cb_stop_transform]: received ' + msg.robot_ns)
         self.transformer_nodes[msg.robot_ns].stop()
         self.node_proxies.pop(msg.robot_ns)
         self.transformer_nodes.pop(msg.robot_ns)
@@ -67,13 +66,13 @@ class TransformManager:
 if __name__ == "__main__":
 
     try:
-        rospy.init_node('transform_manager', log_level=rospy.INFO)
-        rospy.loginfo('[transform_manager]: Node started')
+        rospy.init_node('transform_manager', log_level=rospy.DEBUG)
+        rospy.logdebug('[transform_manager]: Node started')
         manager = TransformManager()
         while not rospy.is_shutdown():
             try:
                 transform_msg = manager.transform_msg_queue.get()
-                rospy.loginfo('[transform_manager ' + manager.namespace + ']: Performing action = ' + transform_msg.action)
+                rospy.logdebug('[' + manager.namespace + '][transform_manager.main]: Performing action = ' + transform_msg.action)
                 if transform_msg.action == 'START':
                     manager.nodes[transform_msg.robot_ns] = roslaunch.core.Node('costmap_merge', 'transformer_node.py', namespace='transformer_' + manager.namespace + '_' + transform_msg.robot_ns, output='screen')
                     if transform_msg.robot_ns not in manager.transformer_nodes:
@@ -85,7 +84,7 @@ if __name__ == "__main__":
                 elif transform_msg.action == 'STOP':
                     manager.stop_transformer_node(transform_msg.detector_ns, transform_msg.robot_ns)
                 else:
-                    rospy.loginfo('[Transform_manager]: WRONG ACTION')
+                    rospy.logdebug('[' + manager.namespace + '][Transform_manager.main]: WRONG ACTION')
             except Exception as e:
                 rospy.logfatal('[transform_manager]: first try exception %s', str(e.message) + str(e.args))
                 e = traceback.format_exc()

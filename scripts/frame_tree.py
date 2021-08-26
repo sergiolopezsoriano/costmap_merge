@@ -46,15 +46,25 @@ class Node:
                     node = self.child_frames[child_id].get_node(frame_id)
         return node
 
+    def get_child(self, frame_id):
+        node = None
+        if self.child_frames:
+            for child_id in self.child_frames:
+                if child_id == frame_id:
+                    return self.child_frames[child_id]
+                else:
+                    node = self.child_frames[child_id].get_node(frame_id)
+        return node
+
     def get_node_list(self, frame_id, node_list1):
         if frame_id == self.frame_id:
             node_list1.append(frame_id)
-            rospy.loginfo('[frame_tree.get_node_list]: node list 1 = ' + node_list1)
+            rospy.logdebug('[Node.get_node_list]: node_list 1 = ' + str(node_list1))
             return node_list1
         if self.child_frames:
             for child_id in self.child_frames:
                 node_list2 = self.child_frames[child_id].get_node_list(frame_id, node_list1)
-                rospy.loginfo(node_list2)
+                rospy.logdebug(node_list2)
                 if node_list2:
                     node_list2.append(self.frame_id)
                     return node_list2
@@ -62,7 +72,7 @@ class Node:
     def delete_node(self, frame_id):
         node_list = list()
         node_list = self.get_node_list(frame_id, node_list)
-        rospy.loginfo('[frame_tree.delete_node]: node list = ' + node_list)
+        rospy.logdebug('[Node.delete_node]: node_list = ' + str(node_list))
         if node_list:
             node_list.reverse()
             branch = 'self'
@@ -110,7 +120,7 @@ class FrameListMsgBuilder:
         self.frame_ids.append(node_to_frame_msg(node))
         if node.child_frames:
             for child_id in node.child_frames:
-                rospy.loginfo('add_frame_to_frame_list: child = ' + child_id)
+                rospy.logdebug('[FrameListMsgBuilder.add_frame_to_frame_list]: child = ' + child_id)
                 self.add_frame_to_frame_list(node.child_frames[child_id])
 
 
@@ -147,7 +157,7 @@ class FrameListMsgParser:
 
     def search_in_branch(self, frame, node):
         if self.node_dict[node].get_node(frame.frame_id):
-            print('[FrameListMsgParser]: WARNING! duplicated frame ' + str(frame.frame_id))
+            print('[FrameListMsgParser.search_in_branch]: WARNING! duplicated frame ' + str(frame.frame_id))
             return True
         elif self.node_dict[node].get_node(frame.parent_frame):
             self.node_dict[node].get_node(frame.parent_frame).create_child(frame.frame_id, frame.stamp)

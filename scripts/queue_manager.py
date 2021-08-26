@@ -29,8 +29,8 @@ class QueueManager:
             if msg.detector_ns == self.detection_queue.queue[0]:
                 self.detection_queue.get()
             else:
-                rospy.logwarn('[Queue manager ' + self.namespace + ']: IRREGULAR ACCESS!')
-                rospy.logwarn('[Queue manager ' + self.namespace + ']: QUEUE SEQUENCE HAS BEEN CORRUPTED!!!')
+                rospy.logwarn('[' + self.namespace + '][queue manager.cb_detection]: IRREGULAR ACCESS!')
+                rospy.logwarn('[' + self.namespace + '][queue manager.cb_detection]: QUEUE SEQUENCE HAS BEEN CORRUPTED!!!')
                 # FIXME: Fix the concurrent access to the queue. Probably starting from the Handshake2 callback.
                 aux_list = list()
                 while self.detection_queue.queue:
@@ -39,7 +39,6 @@ class QueueManager:
                     self.detection_queue.put(aux_list.pop())
 
         if self.detection_queue.queue:
-            rospy.loginfo(self.namespace + ' queue = ' + str(self.detection_queue.queue) + '. Next = ' +
-                          str(self.detection_queue.queue[0]))
+            rospy.logdebug('[' + self.namespace + '][queue manager.cb_detection]: queue = ' + str(self.detection_queue.queue) + '. Next = ' + str(self.detection_queue.queue[0]))
             if self.detection_queue.queue[0] == self.namespace:
                 self.is_my_turn = True
