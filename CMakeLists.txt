@@ -51,10 +51,12 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
 add_message_files(
   FILES
-  TreeQueue.msg
   Frame.msg
   FrameList.msg
   RobotList.msg
+  AccessList.msg
+  QueueAccess.msg
+  QueueElement.msg
 )
 
 ## Generate services in the 'srv' folder

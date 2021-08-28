@@ -1,0 +1,2 @@
+string detector_ns
+time stamp

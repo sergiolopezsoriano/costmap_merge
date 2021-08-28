@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
 import traceback
+
+import rospy
 from costmap_merge.srv import Handshake2, Handshake2Response, Transform, TransformRequest, RobotName, RobotNameResponse
-from costmap_merge.msg import RobotList, TreeQueue
+from costmap_merge.msg import RobotList, QueueAccess
 from random import random
 from frame_tree import *
 from queue_manager import QueueManager
@@ -43,7 +45,7 @@ class DetectionManager:
         self.robots = [self.namespace]
         self.robot_names_publisher = rospy.Publisher('/robots', RobotList, queue_size=10)
 
-        # QUEUE ACCESS MANAGEMENT
+        # DETECTION ACCESS MANAGEMENT
         self.queue_manager = QueueManager()
         self.lock = Lock()
         self.timeout = rospy.get_param('~timeout')
@@ -55,22 +57,29 @@ class DetectionManager:
     def cb_handshake2(self, msg):
         rospy.sleep(random())
         self.lock.acquire()
-        self.queue_manager.modify_queue(TreeQueue.PUSH)
-        while not self.queue_manager.is_my_turn:  # waiting for its own callback
-            rospy.logdebug('[' + self.namespace + '][detection_manager.cb_handshake2]: is_my_turn check!')
+        self.queue_manager.modify_queue(QueueAccess.PUSH)
+        while self.queue_manager.access_queue.empty():
             rospy.sleep(random())
+        while self.queue_manager.access_queue.queue[0][0] != self.namespace:
+            self.queue_manager.publish_queue()
+            rospy.logdebug('[' + self.namespace + '][detection_manager.cb_handshake2]: waiting for my turn.')
+            rospy.sleep(random())
+        # My detector???
         my_detector = self.check_world(self.namespace)
-        my_detector_frame_id = None
         if my_detector:
-            my_detector_frame_id = self.world[my_detector].frame_id
+            if my_detector == msg.robot_ns:
+                rospy.logdebug('[' + self.namespace + '][detection_manager.cb_handshake2]: ' + msg.robot_ns + ' has already detected me.')
+                self.queue_manager.modify_queue(QueueAccess.POP)
+                self.lock.release()
+                return Handshake2Response()
         tree = self.check_world(msg.robot_ns)
         rospy.logdebug('[' + self.namespace + '][detection_manager.cb_handshake2]: ' + str(tree) + ' has detected ' + msg.robot_ns + ' first.')
         rospy.logdebug('[' + self.namespace + '][detection_manager.cb_handshake2]: frame ids = ' + str(self.tree.get_frame_ids(list())))
-        if tree and tree != msg.robot_ns and my_detector_frame_id != msg.robot_ns:
+        if tree and tree != msg.robot_ns:
             rospy.logdebug('[' + self.namespace + '][detection_manager.cb_handshake2]: time difference = ' + str(rospy.Time.now().to_sec() - self.world[tree].get_node(msg.robot_ns).get_stamp().to_sec()))
             if rospy.Time.now().to_sec() - self.world[tree].get_node(msg.robot_ns).get_stamp().to_sec() < self.timeout:
                 rospy.logdebug('[' + self.namespace + '][detection_manager.cb_handshake2]: exiting handshake2. ' + msg.robot_ns + ' detected by ' + tree + ', less than ' + str(self.timeout) + ' seconds ago.')
-                self.queue_manager.modify_queue(TreeQueue.POP)
+                self.queue_manager.modify_queue(QueueAccess.POP)
                 self.lock.release()
                 return Handshake2Response()
             else:
@@ -89,7 +98,7 @@ class DetectionManager:
                 self.update_world()
                 self.call_transform_manager('UPDATE', msg, self.namespace)
         self.publish_robots_list()
-        self.queue_manager.modify_queue(TreeQueue.POP)
+        self.queue_manager.modify_queue(QueueAccess.POP)
         self.lock.release()
         rospy.logdebug('[' + self.namespace + '][detection_manager.cb_handshake2]: END OF THE HANDSHAKE 2')
         return Handshake2Response()
@@ -98,7 +107,6 @@ class DetectionManager:
         for tree in self.world:
             if tree is not self.namespace:
                 self.robots = list(set(self.world[tree].get_frame_ids(self.robots)))
-                rospy.logdebug('[' + self.namespace + '][detection_manager.check_world]: robots = ' + str(self.robots))
                 if self.world[tree].get_node(robot):
                     return tree
         return None
