@@ -48,8 +48,9 @@
     <rosparam command="load" file="$(find kobuki_node)/param/diagnostics.yaml"/>
   </node>
 
-  <include file="$(find costmap_merge)/launch/includes/move_base.launch.xml">
+  <include file="$(find costmap_merge)/launch/includes/agent_move_base.launch.xml">
     <arg name="robot_ns" value="$(arg robot_ns)"/>
+    <arg name="tf_prefix" value="$(arg tf_prefix)"/>
     <arg name="width" value="$(arg width)"/>
     <arg name="height" value="$(arg height)"/>
     <arg name="resolution" value="$(arg resolution)"/>

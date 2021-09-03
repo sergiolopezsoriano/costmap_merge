@@ -4,13 +4,14 @@
 
 ########################## .launch file paths ################################
 # turtlebot2:
-robot_launch_file: '/home/sergi/catkin_ws/src/costmap_merge/launch/includes/robot.launch'
+agent_launch_file: '/home/sergi/catkin_ws/src/costmap_merge/launch/includes/agent.launch'
+detector_launch_file: '/home/sergi/catkin_ws/src/costmap_merge/launch/includes/detector.launch'
 
 ##############################################################################
 
 # number of robots. If fixed poses and costmaps are used, don't exceed the number of configuration per robot type.
-num_detectors: 2
-num_agents: 1
+num_detectors: 1
+num_agents: 0
 
 # Set random configuration. If False the fixed robot poses and/or costmap sizes are used.
 random_pose: False

@@ -12,8 +12,9 @@ class RobotLauncher:
     def __init__(self):
         self.num_detectors = rospy.get_param('~num_detectors')
         self.num_agents = rospy.get_param('~num_agents')
-        self.robot_launch_file = rospy.get_param('~robot_launch_file')
-        self.package = rospkg.get_package_name(self.robot_launch_file)
+        self.agent_launch_file = rospy.get_param('~agent_launch_file')
+        self.detector_launch_file = rospy.get_param('~detector_launch_file')
+        self.package = rospkg.get_package_name(self.agent_launch_file)
         self.random_pose = rospy.get_param('~random_pose')
         self.random_costmap_dimensions = rospy.get_param('~random_costmap_dimensions')
         self.resolution = rospy.get_param('~costmap_resolution')
@@ -25,10 +26,10 @@ class RobotLauncher:
 
     def launch_robots(self):
         while self.num_detectors > 0:
-            self.args.append((self.robot_launch_file, self.configure_robot('detector', self.num_detectors)))
+            self.args.append((self.detector_launch_file, self.configure_robot('detector', self.num_detectors)))
             self.num_detectors -= 1
         while self.num_agents > 0:
-            self.args.append((self.robot_launch_file, self.configure_robot('agent', self.num_agents)))
+            self.args.append((self.agent_launch_file, self.configure_robot('agent', self.num_agents)))
             self.num_agents -= 1
         uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
         roslaunch.configure_logging(uuid)
