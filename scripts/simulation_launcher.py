@@ -18,6 +18,7 @@ class RobotLauncher:
         self.random_pose = rospy.get_param('~random_pose')
         self.random_costmap_dimensions = rospy.get_param('~random_costmap_dimensions')
         self.resolution = rospy.get_param('~costmap_resolution')
+        self.use_sim_time = rospy.get_param('use_sim_time')
         self.args = list()
         self.robots_names = list()
 
@@ -25,15 +26,18 @@ class RobotLauncher:
         rospy.set_param('~robots_names', self.robots_names)
 
     def launch_robots(self):
+        if not self.num_detectors and not self.num_agents:
+            return
+        file_args = list()
         while self.num_detectors > 0:
-            self.args.append((self.detector_launch_file, self.configure_robot('detector', self.num_detectors)))
+            file_args = [(self.detector_launch_file, self.configure_robot('detector', self.num_detectors))]
             self.num_detectors -= 1
         while self.num_agents > 0:
-            self.args.append((self.agent_launch_file, self.configure_robot('agent', self.num_agents)))
+            file_args = [(self.agent_launch_file, self.configure_robot('agent', self.num_agents))]
             self.num_agents -= 1
         uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
         roslaunch.configure_logging(uuid)
-        parent = roslaunch.parent.ROSLaunchParent(uuid, self.args)
+        parent = roslaunch.parent.ROSLaunchParent(uuid, file_args)
         parent.start()
         # parent.shutdown()
 
@@ -50,7 +54,8 @@ class RobotLauncher:
             width, height = rospy.get_param('~' + robot_ns + '/costmap')
         args = ['robot_ns:=' + str(robot_ns), 'robot_type:=' + str(robot_type), 'x:=' + str(x), 'y:=' + str(y),
                 'z:=' + str(z), 'roll:=' + str(roll), 'pitch:=' + str(pitch), 'yaw:=' + str(yaw),
-                'width:=' + str(width), 'height:=' + str(height), 'resolution:=' + str(self.resolution)]
+                'width:=' + str(width), 'height:=' + str(height), 'resolution:=' + str(self.resolution),
+                'sim:=' + str(self.use_sim_time)]
         return args
 
     @staticmethod

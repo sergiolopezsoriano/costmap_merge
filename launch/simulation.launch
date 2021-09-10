@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <launch>
   <arg name="gui"        default="true"/>
-<!--  <arg name="world_file" default="/home/sergi/catkin_ws/src/costmap_merge/worlds/world1.world"/>-->
   <arg name="world_file" default="$(env TURTLEBOT_GAZEBO_WORLD_FILE)"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
