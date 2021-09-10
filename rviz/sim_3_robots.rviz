@@ -6,7 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /Agent 11
+        - /LaserScan1/Status1
       Splitter Ratio: 0.5
     Tree Height: 830
   - Class: rviz/Selection
@@ -167,7 +167,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /robot1/move_base/local_costmap/costmap
+      Topic: /agent1/move_base/local_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: true

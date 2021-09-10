@@ -12,9 +12,8 @@
   <arg name="sim"/>
 
   <!-- Robot description -->
-  <arg name="model" value="$(find robin50_description)/robots/$(arg base)_$(arg stacks)_$(arg 3d_sensor).urdf.xacro"/>
-  <arg name="urdf_file" default="$(find xacro)/xacro  $(arg model) sim:=$(arg sim)"/>
-  <param name="robot_description" command="$(arg urdf_file)" />
+  <param name="robot_description" command="$(find xacro)/xacro '$(find robin50_description)/robots/kobuki_robin50_cyglidar.urdf.xacro'" unless="$(arg sim)"/>
+  <param name="robot_description" command="$(find xacro)/xacro '$(find robin50_description)/robots/kobuki_robin50_kinect.urdf.xacro'" if="$(arg sim)"/>
 
   <!-- Gazebo model spawner -->
   <node name="spawn_turtlebot_model" pkg="gazebo_ros" type="spawn_model"
