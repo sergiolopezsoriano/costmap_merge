@@ -1,6 +1,6 @@
 global_costmap:
-   global_frame: $(arg tf_prefix)/world
-   robot_base_frame: $(arg tf_prefix)/base_footprint
+   global_frame: world
+   robot_base_frame: base_footprint
    update_frequency: 0.1
    publish_frequency: 0.1
    transform_tolerance: 0.5

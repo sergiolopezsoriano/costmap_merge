@@ -15,7 +15,7 @@
   <arg name="sim"/>
 
   <group ns="$(arg robot_ns)">
-    <arg name="tf_prefix" value="$(arg robot_ns)"/>
+    <arg name="tf_prefix" value="$(arg robot_ns)_tf"/>
     <param name="tf_prefix" value="$(arg tf_prefix)"/>
     <param name="robot_type" value="$(arg robot_type)"/>
     <node pkg="tf" type="static_transform_publisher" name="basefootprint_2_baselink"

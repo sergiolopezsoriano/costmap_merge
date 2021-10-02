@@ -1,6 +1,6 @@
 local_costmap:
-   global_frame: $(arg tf_prefix)/world
-   robot_base_frame: $(arg tf_prefix)/base_footprint
+   global_frame: world
+   robot_base_frame: base_footprint
    update_frequency: 4.0
    publish_frequency: 1.0
 #   static_map: true

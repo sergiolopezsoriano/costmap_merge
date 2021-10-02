@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /LaserScan1/Status1
       Splitter Ratio: 0.5
     Tree Height: 830
   - Class: rviz/Selection
@@ -27,7 +26,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: ""
+    SyncSource: LaserScan
 Preferences:
   PromptSaveOnExit: true
 Toolbars:
@@ -70,81 +69,6 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        back_antenna_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        base_footprint:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        body_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        caster_back_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        caster_front_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        cliff_sensor_front_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        cliff_sensor_left_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        cliff_sensor_right_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        cyglidar_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        front_antenna_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        gyro_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        left_antenna_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        right_antenna_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wheel_left_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wheel_right_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: Agent 1
       Robot Description: /agent1/robot_description
       TF Prefix: agent1
@@ -453,6 +377,29 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        front_cam_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        front_cam_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        laser0_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        sonar_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Name: Detector 1
       Robot Description: /detector1/robot_description
       TF Prefix: detector1
@@ -463,22 +410,22 @@ Visualization Manager:
       Class: rviz/Map
       Color Scheme: costmap
       Draw Behind: false
-      Enabled: false
+      Enabled: true
       Name: Map
       Topic: /detector1/move_base/global_costmap/costmap
       Unreliable: false
       Use Timestamp: false
-      Value: false
+      Value: true
     - Alpha: 0.699999988079071
       Class: rviz/Map
       Color Scheme: costmap
       Draw Behind: false
-      Enabled: false
+      Enabled: true
       Name: Map
       Topic: /detector1/move_base/local_costmap/costmap
       Unreliable: false
       Use Timestamp: false
-      Value: false
+      Value: true
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -779,7 +726,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: agent1/odom
+    Fixed Frame: detector1/world
     Frame Rate: 30
   Name: root
   Tools:

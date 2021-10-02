@@ -13,7 +13,7 @@ obstacle_layer:
   combination_method: 1
   observation_sources: scan # ["scan","bump"]
   scan:
-    sensor_frame: $(arg tf_prefix)/laser0
+    sensor_frame: laser0_frame
     data_type: LaserScan
     topic: scan
     observation_persistence: 0

@@ -2,7 +2,6 @@
 <launch>
   <arg name="base"/>
   <arg name="stacks"/>
-  <arg name="3d_sensor"/>
   <arg name="init_pose"/>
   <arg name="robot_ns"/>
   <arg name="tf_prefix"/>
@@ -12,8 +11,8 @@
   <arg name="sim"/>
 
   <!-- Robot description -->
-  <param name="robot_description" command="$(find xacro)/xacro '$(find robin50_description)/robots/kobuki_robin50_cyglidar.urdf.xacro'" unless="$(arg sim)"/>
-  <param name="robot_description" command="$(find xacro)/xacro '$(find robin50_description)/robots/kobuki_robin50_kinect.urdf.xacro'" if="$(arg sim)"/>
+  <param name="robot_description" command="$(find xacro)/xacro '$(find robin50_description)/robots/kobuki_robin50_cyglidar.urdf.xacro'" unless="$(eval arg('sim') == True)"/>
+  <param name="robot_description" command="$(find xacro)/xacro '$(find robin50_description)/robots/kobuki_robin50_kinect.urdf.xacro'" if="$(eval arg('sim') == True)"/>
 
   <!-- Gazebo model spawner -->
   <node name="spawn_turtlebot_model" pkg="gazebo_ros" type="spawn_model"
@@ -38,7 +37,6 @@
     <param name="output_frame_id" value="$(arg tf_prefix)/camera_depth_frame"/>
     <param name="range_min" value="0.45"/>
     <remap from="image" to="camera/depth/image_raw"/>
-<!--    <remap from="scan" to="/scan"/>-->
   </node>
 
   <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">

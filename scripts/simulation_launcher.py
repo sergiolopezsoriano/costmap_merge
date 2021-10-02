@@ -18,7 +18,7 @@ class RobotLauncher:
         self.random_pose = rospy.get_param('~random_pose')
         self.random_costmap_dimensions = rospy.get_param('~random_costmap_dimensions')
         self.resolution = rospy.get_param('~costmap_resolution')
-        self.use_sim_time = rospy.get_param('use_sim_time')
+        self.use_sim_time = rospy.get_param('/use_sim_time')
         self.args = list()
         self.robots_names = list()
 
