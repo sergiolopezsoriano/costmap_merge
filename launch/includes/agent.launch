@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 
-  <arg name="robot_ns"/>
+  <arg name="robot_ns" default="$(env ROBOT_NS)"/>
   <arg name="robot_type"/>
   <arg name="x"/>
   <arg name="y"/>
@@ -15,7 +15,7 @@
   <arg name="sim"/>
 
   <group ns="$(arg robot_ns)">
-    <arg name="tf_prefix" value="$(arg robot_ns)"/>
+    <arg name="tf_prefix" value="$(arg robot_ns)_tf"/>
     <param name="tf_prefix" value="$(arg tf_prefix)"/>
     <param name="robot_type" value="$(arg robot_type)"/>
     <include file="$(find costmap_merge)/launch/includes/agent_simulation.launch" if="$(eval arg('sim') == True)">
@@ -29,6 +29,7 @@
       <arg name="resolution" value="$(arg resolution)"/>
       <arg name="sim" value="$(arg sim)"/>
     </include>
+
     <node name="detector" pkg="costmap_merge" type="detector.py" output="screen" if="$(eval arg('robot_type') == 'detector')">
       <rosparam file="$(find costmap_merge)/config/detector.yaml" command="load"/>
     </node>
