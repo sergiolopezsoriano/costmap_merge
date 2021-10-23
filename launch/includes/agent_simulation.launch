@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="base"/>
-  <arg name="stacks"/>
   <arg name="init_pose"/>
   <arg name="robot_ns"/>
   <arg name="tf_prefix"/>
@@ -10,9 +8,7 @@
   <arg name="resolution"/>
   <arg name="sim"/>
 
-  <!-- Robot description -->
-  <param name="robot_description" command="$(find xacro)/xacro '$(find robin50_description)/robots/kobuki_robin50_cyglidar.urdf.xacro'" unless="$(eval arg('sim') == True)"/>
-  <param name="robot_description" command="$(find xacro)/xacro '$(find robin50_description)/robots/kobuki_robin50_kinect.urdf.xacro'" if="$(eval arg('sim') == True)"/>
+  <param name="robot_description" command="$(find xacro)/xacro '$(find robin50_description)/robots/kobuki_robin50_kinect.urdf.xacro'"/>
 
   <!-- Gazebo model spawner -->
   <node name="spawn_turtlebot_model" pkg="gazebo_ros" type="spawn_model"
@@ -47,7 +43,7 @@
     <rosparam command="load" file="$(find kobuki_node)/param/diagnostics.yaml"/>
   </node>
 
-  <include file="$(find costmap_merge)/launch/includes/agent_move_base.launch.xml">
+  <include file="$(find costmap_merge)/launch/includes/move_base_simulation.launch">
     <arg name="robot_ns" value="$(arg robot_ns)"/>
     <arg name="tf_prefix" value="$(arg tf_prefix)"/>
     <arg name="width" value="$(arg width)"/>

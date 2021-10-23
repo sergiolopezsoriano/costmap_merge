@@ -14,15 +14,11 @@
   <arg name="resolution"/>
   <arg name="sim"/>
 
-  <arg name="base"       value="$(optenv TURTLEBOT_BASE kobuki)"/> <!-- create, roomba -->
-  <arg name="battery"    value="$(optenv TURTLEBOT_BATTERY /proc/acpi/battery/BAT0)"/>  <!-- /proc/acpi/battery/BAT0 -->
-  <arg name="stacks"     value="robin50"/>  <!-- circles, hexagons -->
-
   <group ns="$(arg robot_ns)">
     <arg name="tf_prefix" value="$(arg robot_ns)"/>
     <param name="tf_prefix" value="$(arg tf_prefix)"/>
     <param name="robot_type" value="$(arg robot_type)"/>
-    <include file="$(find costmap_merge)/launch/includes/agent.launch.xml">
+    <include file="$(find costmap_merge)/launch/includes/agent_simulation.launch" if="$(eval arg('sim') == True)">
       <arg name="base" value="$(arg base)"/>
       <arg name="stacks" value="$(arg stacks)"/>
       <arg name="init_pose" value="-x $(arg x) -y $(arg y) -z $(arg z) -R $(arg roll) -P $(arg pitch) -Y $(arg yaw)" />
