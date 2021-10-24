@@ -21,7 +21,7 @@ class RobotLauncher:
         # parent.shutdown()
 
     def configure_robot(self):
-        x, y, z, roll, pitch, yaw = rospy.get_param('~/coordinates')
+        x, y, z, roll, pitch, yaw = rospy.get_param('~coordinates')
         args = ['robot_ns:=' + str(self.robot_ns), 'robot_type:=' + str(self.robot_type), 'x:=' + str(x),
                 'y:=' + str(y), 'z:=' + str(z), 'roll:=' + str(roll), 'pitch:=' + str(pitch), 'yaw:=' + str(yaw),
                 'sim:=' + str(self.use_sim_time)]

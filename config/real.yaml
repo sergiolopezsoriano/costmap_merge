@@ -1,7 +1,7 @@
 # If not defined in .bashrc the robot namespace can be optionally defined here
 robot_ns: ''
 # Path of the agent launch file
-agent_launch_file: '/home/sergi/catkin_ws/src/costmap_merge/launch/includes/agent.launch'
+agent_launch_file: '/home/antrobot/catkin_ws/src/costmap_merge/launch/includes/agent.launch'
 # Type of robot
 robot_type: 'detector'
 # Fixed Robot position

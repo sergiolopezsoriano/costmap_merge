@@ -2,6 +2,7 @@
 <launch>
 
   <arg name="robot_ns" default="$(env ROBOT_NS)"/>
+  <arg name="tf_prefix" value="$(env ROBOT_TF_PREFIX)" default="$(arg robot_ns)_tf"/>
   <arg name="robot_type"/>
   <arg name="x"/>
   <arg name="y"/>
@@ -15,7 +16,6 @@
   <arg name="sim"/>
 
   <group ns="$(arg robot_ns)">
-    <arg name="tf_prefix" value="$(arg robot_ns)_tf"/>
     <param name="tf_prefix" value="$(arg tf_prefix)"/>
     <param name="robot_type" value="$(arg robot_type)"/>
     <include file="$(find costmap_merge)/launch/includes/agent_simulation.launch" if="$(eval arg('sim') == True)">
