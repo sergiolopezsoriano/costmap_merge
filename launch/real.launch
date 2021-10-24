@@ -4,5 +4,5 @@
   <node name="real_launcher" pkg="costmap_merge" type="real_launcher.py" output="screen">
     <rosparam file="$(find costmap_merge)/config/real.yaml" command="load"/>
   </node>
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find costmap_merge)/rviz/sim_3_robots.rviz"/>
+<!--  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find costmap_merge)/rviz/two_robots.rviz"/>-->
 </launch>

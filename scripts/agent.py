@@ -13,12 +13,12 @@ class Agent:
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')
         self.robot_type = rospy.get_param('/' + str(self.namespace) + '/robot_type')
-        self.robots_names = rospy.get_param('/simulation_launcher/robots_names')
+        self.robots_names = ['robot3', 'robot4']
         # OdomNode dictionary of all the simulated robots
         self.robots = dict()
         for robot in self.robots_names:
             self.robots[robot] = OdomRobot(robot)
-            coordinates = rospy.get_param('/simulation_launcher/' + str(robot) + '/coordinates')
+            coordinates = rospy.get_param('/real_launcher/coordinates')
             self.robots[robot].set_start_from_coordinates('/map', rospy.Time.now(), coordinates)
         # Service to receive the robot poses in the detector's frame
         rospy.Service('handshake1_service', Handshake1, self.cb_handshake1)
