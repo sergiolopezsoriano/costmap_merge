@@ -2,7 +2,7 @@
 
 import rospy
 from costmap_merge.msg import AccessList, QueueAccess, QueueElement
-from multiprocessing import Queue
+from queue import Queue
 import copy
 
 

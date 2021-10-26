@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="robot_ns" default="$(env ROBOT_NS)"/>
+  <arg name="robot_type"/>
+  <arg name="x"/>
+  <arg name="y"/>
+  <arg name="z"/>
+  <arg name="roll"/>
+  <arg name="pitch"/>
+  <arg name="yaw"/>
+  <arg name="width"/>
+  <arg name="height"/>
+  <arg name="resolution"/>
+  <arg name="sim"/>
+  <arg name="can_detect"/>
+
+  <group ns="$(arg robot_ns)">
+    <arg name="tf_prefix" value="$(arg robot_ns)_tf"/>
+    <param name="tf_prefix" value="$(arg tf_prefix)"/>
+    <param name="robot_type" value="$(arg robot_type)"/>
+    <include file="$(find costmap_merge)/launch/robots/$(arg robot_type).launch" if="$(arg sim)">
+      <arg name="x" value="$(arg x)"/>
+      <arg name="y" value="$(arg y)"/>
+      <arg name="z" value="$(arg z)"/>
+      <arg name="roll" value="$(arg roll)"/>
+      <arg name="pitch" value="$(arg pitch)"/>
+      <arg name="yaw" value="$(arg yaw)"/>
+      <arg name="robot_ns"  value="$(arg robot_ns)"/>
+      <arg name="tf_prefix" value="$(arg tf_prefix)"/>
+      <arg name="width" value="$(arg width)"/>
+      <arg name="height" value="$(arg height)"/>
+      <arg name="resolution" value="$(arg resolution)"/>
+    </include>
+
+    <group if="$(arg can_detect)">
+      <node name="detector" pkg="costmap_merge" type="detector.py" output="screen">
+        <rosparam file="$(find costmap_merge)/config/detector.yaml" command="load"/>
+      </node>
+      <node name="detection_manager" pkg="costmap_merge" type="detection_manager.py" output="screen">
+        <rosparam file="$(find costmap_merge)/config/detection_manager.yaml" command="load"/>
+      </node>
+      <node name="transform_manager" pkg="costmap_merge" type="transform_manager.py" output="screen"/>
+    </group>
+    <node name="listener" pkg="costmap_merge" type="listener.py" output="screen"/>
+    <node name="costmap_network" pkg="costmap_merge" type="costmap_network.py" output="screen">
+      <rosparam file="$(find costmap_merge)/config/costmap_network.yaml" command="load"/>
+    </node>
+  </group>
+ 
+</launch>

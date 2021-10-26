@@ -3,33 +3,50 @@
 ##############################################################################
 
 ########################## .launch file paths ################################
-# turtlebot2:
-agent_launch_file: '/home/sergi/catkin_ws/src/costmap_merge/launch/includes/agent.launch'
-detector_launch_file: '/home/sergi/catkin_ws/src/costmap_merge/launch/includes/detector.launch'
+
+robot_types: ['robin50', 'quadrotor', 'turtlebot']
+num_robots: [3, 0, 0]
 
 ##############################################################################
-
-# number of robots. If fixed poses and costmaps are used, don't exceed the number of configuration per robot type.
-num_detectors: 2
-num_agents: 0
 
 # Set random configuration. If False the fixed robot poses and/or costmap sizes are used.
 random_pose: False
 random_costmap_dimensions: False
 
-# Fixed Robot positions and costmap sizes
-detector1:  # 3, -3
-  coordinates: [1, -2, 0, 0, 0, 3.14]  # x, y, z, roll, pitch, yaw
-  costmap: [3, 3]  # width, height
-detector2:
+# Robot parameters
+# robot_name = robot_type-robot_num
+quadrotor_1:
+  coordinates: [ 0, -3, 2, 0, 0, 3.14 ]  # x, y, z, roll, pitch, yaw
+  costmap: [ 3, 3 ]  # width, height
+  can_detect: True
+quadrotor_2:
+  coordinates: [ 1, -3, 2, 0, 0, 3.14 ]  # x, y, z, roll, pitch, yaw
+  costmap: [ 3, 3 ]  # width, height
+  can_detect: True
+robin50_1:
+  coordinates: [1, -2, 0, 0, 0, 3.14]
+  costmap: [3, 3]
+  can_detect: True
+robin50_2:
   coordinates: [-1, -2, 0, 0, 0, 0]
   costmap: [3, 3]
-agent1:
+  can_detect: True
+robin50_3:
+  coordinates: [-3, -6, 0, 0, 0, 0]
+  costmap: [3, 3]
+  can_detect: True
+turtlebot_1:
   coordinates: [0, -2, 0, 0, 0, -1.57]
   costmap: [3, 3]
-agent2:
+  can_detect: False
+turtlebot_2:
   coordinates: [-3, -3, 0, 0, 0, 0]
   costmap: [3, 3]
+  can_detect: False
+turtlebot_3:
+  coordinates: [ -6, -3, 0, 0, 0, 0 ]
+  costmap: [ 3, 3 ]
+  can_detect: False
 
 # More costmap parameters
 costmap_resolution: 0.05

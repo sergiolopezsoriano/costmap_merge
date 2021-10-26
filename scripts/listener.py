@@ -8,17 +8,16 @@ from costmap_merge.srv import Handshake1, Handshake2, Handshake1Response
 from helpers import TransformHelper, PoseHelper
 
 
-class Agent:
+class Listener:
     def __init__(self):
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')
-        self.robot_type = rospy.get_param('/' + str(self.namespace) + '/robot_type')
-        self.robots_names = ['robot3', 'robot4']
+        self.robots_names = rospy.get_param('/robots_names')
         # OdomNode dictionary of all the simulated robots
         self.robots = dict()
         for robot in self.robots_names:
             self.robots[robot] = OdomRobot(robot)
-            coordinates = rospy.get_param('/real_launcher/coordinates')
+            coordinates = rospy.get_param('/simulation_launcher/' + self.namespace + '/coordinates')
             self.robots[robot].set_start_from_coordinates('/map', rospy.Time.now(), coordinates)
         # Service to receive the robot poses in the detector's frame
         rospy.Service('handshake1_service', Handshake1, self.cb_handshake1)
@@ -26,7 +25,7 @@ class Agent:
         self.handshake2_proxies = dict()
 
     def cb_handshake1(self, msg):
-        """ The detector calls providing its position, the agent's position in the detector's odom frame and the angle
+        """ The detector calls providing its position, the listener's position in the detector's odom frame and the angle
                 between both positions. If two detectors """
         pose_D_R = self.find_detector_in_costmap(msg.detector_ns)
         pose_R_R = PoseHelper.get_pose_from_odom(self.robots[self.namespace].odom)
@@ -77,12 +76,12 @@ class Agent:
 if __name__ == "__main__":
 
     try:
-        rospy.init_node('agent', log_level=rospy.INFO)
-        rospy.logdebug('[agent]: Node started')
-        detection_handshake = Agent()
+        rospy.init_node('listener', log_level=rospy.INFO)
+        rospy.logdebug('[listener]: Node started')
+        detection_handshake = Listener()
         rospy.spin()
 
     except Exception as e:
-        rospy.logfatal('[agent]: Exception %s', str(e.message) + str(e.args))
+        rospy.logfatal('[listener]: Exception %s', str(e.message) + str(e.args))
         e = traceback.format_exc()
         rospy.logfatal(e)

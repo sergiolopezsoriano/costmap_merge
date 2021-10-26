@@ -1,12 +1,17 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="init_pose"/>
+  <arg name="x"/>
+  <arg name="y"/>
+  <arg name="z"/>
+  <arg name="roll"/>
+  <arg name="pitch"/>
+  <arg name="yaw"/>
   <arg name="robot_ns"/>
   <arg name="tf_prefix"/>
   <arg name="width"/>
   <arg name="height"/>
   <arg name="resolution"/>
-  <arg name="sim"/>
+  <arg name="init_pose" value="-x $(arg x) -y $(arg y) -z $(arg z) -R $(arg roll) -P $(arg pitch) -Y $(arg yaw)" />
 
   <param name="robot_description" command="$(find xacro)/xacro '$(find robin50_description)/robots/kobuki_robin50_kinect.urdf.xacro'"/>
 
@@ -43,7 +48,7 @@
     <rosparam command="load" file="$(find kobuki_node)/param/diagnostics.yaml"/>
   </node>
 
-  <include file="$(find costmap_merge)/launch/includes/move_base_simulation.launch">
+  <include file="$(find costmap_merge)/launch/robots/move_base_simulation.launch">
     <arg name="robot_ns" value="$(arg robot_ns)"/>
     <arg name="tf_prefix" value="$(arg tf_prefix)"/>
     <arg name="width" value="$(arg width)"/>

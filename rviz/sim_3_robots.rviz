@@ -69,9 +69,9 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-      Name: Agent 1
-      Robot Description: /agent1/robot_description
-      TF Prefix: agent1
+      Name: Turtlebot 1
+      Robot Description: /turtlebot1/robot_description
+      TF Prefix: turtlebot1_tf
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -81,7 +81,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /agent1/move_base/global_costmap/costmap
+      Topic: /turtlebot1/move_base/global_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -91,7 +91,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /agent1/move_base/local_costmap/costmap
+      Topic: /turtlebot1/move_base/local_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -110,9 +110,7 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 2
       Min Color: 0; 0; 0
-      Min Intensity: 2
       Name: LaserScan
       Position Transformer: XYZ
       Queue Size: 10
@@ -120,7 +118,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.009999999776482582
       Style: Flat Squares
-      Topic: /agent1/scan
+      Topic: /turtlebot1/scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -145,7 +143,7 @@ Visualization Manager:
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
-      Topic: /agent1/move_base/DWAPlannerROS/global_plan
+      Topic: /turtlebot1/move_base/DWAPlannerROS/global_plan
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -168,7 +166,7 @@ Visualization Manager:
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
-      Topic: /agent1/move_base/DWAPlannerROS/local_plan
+      Topic: /turtlebot1/move_base/DWAPlannerROS/local_plan
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -176,7 +174,7 @@ Visualization Manager:
       Color: 239; 41; 41
       Enabled: true
       Name: Polygon
-      Topic: /agent1/move_base/global_costmap/footprint
+      Topic: /turtlebot1/move_base/global_costmap/footprint
       Unreliable: false
       Value: true
     - Angle Tolerance: 0.10000000149011612
@@ -210,7 +208,7 @@ Visualization Manager:
         Shaft Length: 1
         Shaft Radius: 0.05000000074505806
         Value: Arrow
-      Topic: /agent1/odom
+      Topic: /turtlebot1/odom
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -223,9 +221,9 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-      Name: Agent 2
-      Robot Description: /robot2/robot_description
-      TF Prefix: robot2
+      Name: Turtlebot 2
+      Robot Description: /turtlebot2/robot_description
+      TF Prefix: robot2_tf
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -235,7 +233,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: false
       Name: Map
-      Topic: /robot2/move_base/global_costmap/costmap
+      Topic: /turtlebot2/move_base/global_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: false
@@ -245,7 +243,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: false
       Name: Map
-      Topic: /robot2/move_base/local_costmap/costmap
+      Topic: /turtlebot2/move_base/local_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: false
@@ -264,9 +262,7 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 2
       Min Color: 0; 0; 0
-      Min Intensity: 2
       Name: LaserScan
       Position Transformer: XYZ
       Queue Size: 10
@@ -274,7 +270,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.009999999776482582
       Style: Flat Squares
-      Topic: /robot2/scan
+      Topic: /turtlebot2/scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -299,7 +295,7 @@ Visualization Manager:
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
-      Topic: /robot2/move_base/DWAPlannerROS/global_plan
+      Topic: /turtlebot2/move_base/DWAPlannerROS/global_plan
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -322,7 +318,7 @@ Visualization Manager:
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
-      Topic: /robot2/move_base/DWAPlannerROS/local_plan
+      Topic: /turtlebot2/move_base/DWAPlannerROS/local_plan
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -330,7 +326,7 @@ Visualization Manager:
       Color: 25; 255; 0
       Enabled: true
       Name: Polygon
-      Topic: /robot2/move_base/global_costmap/footprint
+      Topic: /turtlebot2/move_base/global_costmap/footprint
       Unreliable: false
       Value: true
     - Angle Tolerance: 0.10000000149011612
@@ -364,7 +360,7 @@ Visualization Manager:
         Shaft Length: 1
         Shaft Radius: 0.05000000074505806
         Value: Arrow
-      Topic: /robot2/odom
+      Topic: /turtlebot2/odom
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -377,32 +373,100 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
+        back_antenna_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
         base_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        front_cam_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        front_cam_optical_frame:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        laser0_frame:
+        body_link:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-        sonar_link:
+        camera_depth_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_depth_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rgb_frame:
           Alpha: 1
           Show Axes: false
           Show Trail: false
           Value: true
-      Name: Detector 1
-      Robot Description: /detector1/robot_description
-      TF Prefix: detector1
+        camera_rgb_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        caster_back_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        caster_front_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        cliff_sensor_front_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        cliff_sensor_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        cliff_sensor_right_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        front_antenna_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        gyro_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_antenna_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_antenna_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_right_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: Robin50 1
+      Robot Description: /robin50_1/robot_description
+      TF Prefix: robin50_1_tf
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -412,7 +476,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /detector1/move_base/global_costmap/costmap
+      Topic: /robin50_1/move_base/global_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -422,7 +486,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /detector1/move_base/local_costmap/costmap
+      Topic: /robin50_1/move_base/local_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -441,9 +505,7 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 0
       Min Color: 0; 0; 0
-      Min Intensity: 0
       Name: LaserScan
       Position Transformer: XYZ
       Queue Size: 10
@@ -451,7 +513,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.009999999776482582
       Style: Flat Squares
-      Topic: /detector1/scan
+      Topic: /robin50_1/scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -476,7 +538,7 @@ Visualization Manager:
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
-      Topic: /detector1/move_base/DWAPlannerROS/global_plan
+      Topic: /robin50_1/move_base/DWAPlannerROS/global_plan
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -499,7 +561,7 @@ Visualization Manager:
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
-      Topic: /detector1/move_base/GlobalPlanner/plan
+      Topic: /robin50_1/move_base/GlobalPlanner/plan
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -507,7 +569,7 @@ Visualization Manager:
       Color: 252; 233; 79
       Enabled: true
       Name: Polygon
-      Topic: /detector1/move_base/global_costmap/footprint
+      Topic: /robin50_1/move_base/global_costmap/footprint
       Unreliable: false
       Value: true
     - Angle Tolerance: 0.10000000149011612
@@ -541,7 +603,7 @@ Visualization Manager:
         Shaft Length: 1
         Shaft Radius: 0.05000000074505806
         Value: Arrow
-      Topic: /detector1/world
+      Topic: /robin50_1/odom
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -554,9 +616,100 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-      Name: Detector 2
-      Robot Description: /detector2/robot_description
-      TF Prefix: detector2
+        back_antenna_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_footprint:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        body_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_depth_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_depth_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        camera_rgb_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        camera_rgb_optical_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        caster_back_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        caster_front_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        cliff_sensor_front_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        cliff_sensor_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        cliff_sensor_right_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        front_antenna_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        gyro_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_antenna_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_antenna_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_left_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wheel_right_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: Robin50 2
+      Robot Description: /robin50_2/robot_description
+      TF Prefix: robin50_2_tf
       Update Interval: 0
       Value: true
       Visual Enabled: true
@@ -566,7 +719,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: false
       Name: Map
-      Topic: /detector2/move_base/global_costmap/costmap
+      Topic: /robin50_2/move_base/global_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: false
@@ -576,7 +729,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: false
       Name: Map
-      Topic: /detector2/move_base/local_costmap/costmap
+      Topic: /robin50_2/move_base/local_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: false
@@ -595,9 +748,7 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 4096
       Min Color: 0; 0; 0
-      Min Intensity: 0
       Name: LaserScan
       Position Transformer: XYZ
       Queue Size: 10
@@ -605,7 +756,7 @@ Visualization Manager:
       Size (Pixels): 3
       Size (m): 0.009999999776482582
       Style: Flat Squares
-      Topic: /detector2/scan
+      Topic: /robin50_2/scan
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
@@ -630,7 +781,7 @@ Visualization Manager:
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
-      Topic: /detector2/move_base/DWAPlannerROS/global_plan
+      Topic: /robin50_2/move_base/DWAPlannerROS/global_plan
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -653,7 +804,7 @@ Visualization Manager:
       Radius: 0.029999999329447746
       Shaft Diameter: 0.10000000149011612
       Shaft Length: 0.10000000149011612
-      Topic: /detector2/move_base/DWAPlannerROS/global_plan
+      Topic: /robin50_2/move_base/DWAPlannerROS/global_plan
       Unreliable: false
       Value: true
     - Alpha: 1
@@ -661,7 +812,7 @@ Visualization Manager:
       Color: 25; 255; 0
       Enabled: true
       Name: Polygon
-      Topic: /detector2/move_base/global_costmap/footprint
+      Topic: /robin50_2/move_base/global_costmap/footprint
       Unreliable: false
       Value: true
     - Angle Tolerance: 0.10000000149011612
@@ -695,13 +846,13 @@ Visualization Manager:
         Shaft Length: 1
         Shaft Radius: 0.05000000074505806
         Value: Arrow
-      Topic: /detector2/odom
+      Topic: /robin50_2/odom
       Unreliable: false
       Value: true
     - Class: rviz/Camera
       Enabled: true
       Image Rendering: background and overlay
-      Image Topic: /detector1/front_cam/camera/image
+      Image Topic: /robin50_2/front_cam/camera/image
       Name: Camera
       Overlay Alpha: 0.5
       Queue Size: 2
@@ -709,24 +860,24 @@ Visualization Manager:
       Unreliable: false
       Value: true
       Visibility:
-        Agent 1: true
-        Agent 2: true
         Axes: true
-        Detector 1: true
-        Detector 2: true
         Grid: true
         LaserScan: true
         Map: true
         Odometry: true
         Path: true
         Polygon: true
+        Robin50 1: true
+        Robin50 2: true
+        Turtlebot 1: true
+        Turtlebot 2: true
         Value: true
       Zoom Factor: 1
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: detector1/world
+    Fixed Frame: robin50_1_tf/odom
     Frame Rate: 30
   Name: root
   Tools:
@@ -742,7 +893,7 @@ Visualization Manager:
       X std deviation: 0.5
       Y std deviation: 0.5
     - Class: rviz/SetGoal
-      Topic: /robot1/move_base_simple/goal
+      Topic: /robin50_2/move_base_simple/goal
     - Class: rviz/PublishPoint
       Single click: true
       Topic: /clicked_point

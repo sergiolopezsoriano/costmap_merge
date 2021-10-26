@@ -171,7 +171,7 @@ include_directories(
 catkin_install_python(PROGRAMS
   scripts/detector.py
   scripts/costmap_network.py
-  scripts/agent.py
+  scripts/listener.py
   scripts/detection_manager.py
   scripts/transformer_node.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

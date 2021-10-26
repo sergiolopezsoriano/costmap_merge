@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 <launch>
+  <arg name="robot_ns" default="$(env ROBOT_NS)"/>
   <arg name="use_sim_time"  default="false"/>
-  <node name="real_launcher" pkg="costmap_merge" type="real_launcher.py" output="screen">
+  <node name="$(arg robot_ns)" pkg="costmap_merge" type="real_launcher.py" output="screen">
+    <param name="robot_ns" value="$(arg robot_ns)"/>
     <rosparam file="$(find costmap_merge)/config/real.yaml" command="load"/>
   </node>
 <!--  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find costmap_merge)/rviz/two_robots.rviz"/>-->

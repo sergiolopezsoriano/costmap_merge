@@ -5,7 +5,7 @@ import rospy
 import roslaunch
 from costmap_merge.srv import RobotName, RobotNameResponse
 from costmap_merge.srv import Transform, TransformResponse
-from multiprocessing import Queue
+from queue import Queue
 
 
 class TransformManager:

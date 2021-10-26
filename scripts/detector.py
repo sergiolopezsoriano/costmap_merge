@@ -14,13 +14,13 @@ class Detector:
                 common frame where the calculation of distances and relationships between poses are possible. """
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')
-        self.robots_names = ['robot3', 'robot4']
+        self.robots_names = rospy.get_param('/robots_names')
         self.detection_range = rospy.get_param('~detection_range')
         # OdomNode dictionary of all the simulated robots
         self.robots = dict()
         for robot in self.robots_names:
             self.robots[robot] = OdomRobot(robot)
-            coordinates = rospy.get_param('/real_launcher/coordinates')
+            coordinates = rospy.get_param('/simulation_launcher/' + self.namespace + '/coordinates')
             self.robots[robot].set_start_from_coordinates('/map', rospy.Time.now(), coordinates)
         # Initializes the proxies dictionary to communicate with the detection_handshake node
         self.handshake1_proxies = dict()
