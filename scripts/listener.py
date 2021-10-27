@@ -12,12 +12,19 @@ class Listener:
     def __init__(self):
         # Getting ROS parameters
         self.namespace = rospy.get_namespace().strip('/')
-        self.robots_names = rospy.get_param('/robots_names')
+        self.sim = rospy.get_param('/use_sim_time')
+        if self.sim:
+            self.robots_names = rospy.get_param('/robots_names')
+        else:
+            self.robots_names = rospy.get_param('/' + self.namespace + '/robots_names')
         # OdomNode dictionary of all the simulated robots
         self.robots = dict()
         for robot in self.robots_names:
             self.robots[robot] = OdomRobot(robot)
-            coordinates = rospy.get_param('/simulation_launcher/' + self.namespace + '/coordinates')
+            if self.sim:
+                coordinates = rospy.get_param('/simulation_launcher/' + robot + '/coordinates')
+            else:
+                coordinates = rospy.get_param('/' + robot + '/coordinates')
             self.robots[robot].set_start_from_coordinates('/map', rospy.Time.now(), coordinates)
         # Service to receive the robot poses in the detector's frame
         rospy.Service('handshake1_service', Handshake1, self.cb_handshake1)

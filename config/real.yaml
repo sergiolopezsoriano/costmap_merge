@@ -1,5 +1,5 @@
 # Path of the agent launch file
-agent_launch_file: '/home/antrobot/catkin_ws/src/costmap_merge/launch/includes/agent.launch'
+agent_launch_file: '/home/antrobot/catkin_ws/src/costmap_merge/launch/agent.launch'
 
 robot_names: ['robot3', 'robot4']       # names of all the robots in the fleet
 robot_type: 'robin50'                   # Type of robot
