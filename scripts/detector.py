@@ -19,7 +19,7 @@ class Detector:
         if self.sim:
             self.robots_names = rospy.get_param('/robots_names')
         else:
-            self.robots_names = rospy.get_param('/' + self.namespace + '/robots_names')
+            self.robots_names = rospy.get_param('robots').keys()
         # OdomNode dictionary of all the simulated robots
         self.robots = dict()
         for robot in self.robots_names:
@@ -27,7 +27,7 @@ class Detector:
             if self.sim:
                 coordinates = rospy.get_param('/simulation_launcher/' + robot + '/coordinates')
             else:
-                coordinates = rospy.get_param('/' + robot + '/coordinates')
+                coordinates = rospy.get_param('/' + self.namespace + '/robots/' + robot + '/coordinates')
             self.robots[robot].set_start_from_coordinates('/map', rospy.Time.now(), coordinates)
         # Initializes the proxies dictionary to communicate with the detection_handshake node
         self.handshake1_proxies = dict()
@@ -86,7 +86,7 @@ class Detector:
         y = self.robots[robot].transformed_odom.pose.position.y - self.robots[self.namespace].start.pose.position.y
         x, y = PoseHelper.rotate([0, 0], [x, y], PoseHelper.get_yaw_from_orientation(
             self.robots[self.namespace].start.pose.orientation))
-        pose_R_D = PoseHelper.set_2D_pose(str(self.namespace) + '/odom', rospy.Time.now(), [x, y, 0, 0, 0, 0])
+        pose_R_D = PoseHelper.set_2D_pose(str(self.namespace) + '_tf/odom', rospy.Time.now(), [x, y, 0, 0, 0, 0])
         return pose_R_D
 
     def handshake1(self, robot, pose_D_D, pose_R_D, alpha):

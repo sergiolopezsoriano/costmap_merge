@@ -37,20 +37,15 @@
       <node name="detector" pkg="costmap_merge" type="detector.py" output="screen">
         <rosparam file="$(find costmap_merge)/config/detector.yaml" command="load"/>
       </node>
-      <group unless="$(arg sim)">
-<!--        Transform broadcaster node for real robots -->
-      </group>
-      <group if="$(arg sim)">
-        <node name="detection_manager" pkg="costmap_merge" type="detection_manager.py" output="screen">
-          <rosparam file="$(find costmap_merge)/config/detection_manager.yaml" command="load"/>
-        </node>
-        <node name="transform_manager" pkg="costmap_merge" type="transform_manager.py" output="screen"/>
-      </group>
+      <node name="detection_manager" pkg="costmap_merge" type="detection_manager.py" output="screen">
+        <rosparam file="$(find costmap_merge)/config/detection_manager.yaml" command="load"/>
+      </node>
+      <node name="transform_manager" pkg="costmap_merge" type="transform_manager.py" output="screen"/>
     </group>
     <node name="listener" pkg="costmap_merge" type="listener.py" output="screen"/>
     <node name="costmap_network" pkg="costmap_merge" type="costmap_network.py" output="screen">
       <rosparam file="$(find costmap_merge)/config/costmap_network.yaml" command="load"/>
     </node>
   </group>
- 
+ printprint
 </launch>

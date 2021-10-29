@@ -5,7 +5,7 @@
 ########################## .launch file paths ################################
 
 robot_types: ['robin50', 'quadrotor', 'turtlebot']
-num_robots: [3, 0, 0]
+num_robots: [0, 0, 2]
 
 ##############################################################################
 
@@ -38,15 +38,15 @@ robin50_3:
 turtlebot_1:
   coordinates: [0, -2, 0, 0, 0, -1.57]
   costmap: [3, 3]
-  can_detect: False
+  can_detect: True
 turtlebot_2:
   coordinates: [-3, -3, 0, 0, 0, 0]
   costmap: [3, 3]
-  can_detect: False
+  can_detect: True
 turtlebot_3:
   coordinates: [ -6, -3, 0, 0, 0, 0 ]
   costmap: [ 3, 3 ]
-  can_detect: False
+  can_detect: True
 
 # More costmap parameters
 costmap_resolution: 0.05

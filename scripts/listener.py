@@ -16,7 +16,7 @@ class Listener:
         if self.sim:
             self.robots_names = rospy.get_param('/robots_names')
         else:
-            self.robots_names = rospy.get_param('/' + self.namespace + '/robots_names')
+            self.robots_names = rospy.get_param('robots').keys()
         # OdomNode dictionary of all the simulated robots
         self.robots = dict()
         for robot in self.robots_names:
@@ -24,7 +24,7 @@ class Listener:
             if self.sim:
                 coordinates = rospy.get_param('/simulation_launcher/' + robot + '/coordinates')
             else:
-                coordinates = rospy.get_param('/' + robot + '/coordinates')
+                coordinates = rospy.get_param('/' + self.namespace + '/robots/' + robot + '/coordinates')
             self.robots[robot].set_start_from_coordinates('/map', rospy.Time.now(), coordinates)
         # Service to receive the robot poses in the detector's frame
         rospy.Service('handshake1_service', Handshake1, self.cb_handshake1)
@@ -38,7 +38,11 @@ class Listener:
         pose_R_R = PoseHelper.get_pose_from_odom(self.robots[self.namespace].odom)
         beta = math.atan2(pose_D_R.pose.position.y - pose_R_R.pose.position.y,
                           pose_D_R.pose.position.x - pose_R_R.pose.position.x)
-        self.handshake2(msg.detector_ns, msg.pose_R_D, pose_R_R, msg.alpha, beta)
+        if self.sim:
+            self.handshake2(msg.detector_ns, msg.pose_R_D, pose_R_R, msg.alpha, beta)
+        else:
+            # Transformation in the base_link frame (rot)-(trans)-(rot)T
+            self.handshake2(msg.detector_ns, pose_D_R, pose_R_R, msg.alpha, beta)
         return Handshake1Response()
 
     def find_detector_in_costmap(self, robot):
@@ -65,7 +69,7 @@ class Listener:
         y = self.robots[robot].transformed_odom.pose.position.y - self.robots[self.namespace].start.pose.position.y
         x, y = PoseHelper.rotate([0, 0], [x, y], PoseHelper.get_yaw_from_orientation(
             self.robots[self.namespace].start.pose.orientation))
-        pose_D_R = PoseHelper.set_2D_pose(str(self.namespace) + '/odom', rospy.Time.now(), [x, y, 0, 0, 0, 0])
+        pose_D_R = PoseHelper.set_2D_pose(str(self.namespace) + '_tf/odom', rospy.Time.now(), [x, y, 0, 0, 0, 0])
         return pose_D_R
 
     def handshake2(self, detector_ns, pose_R_D, pose_R_R, alpha, beta):

@@ -9,7 +9,7 @@ from geometry_msgs.msg import PoseStamped
 class OdomRobot(object):
     def __init__(self, namespace):
         self.namespace = namespace
-        # Starting relative pose to the map TODO: apply changes for real operation
+        # Starting relative pose to the map
         self.start = PoseStamped()
         # Flags to prevent publishing before the odometry is received
         self.odom_ready = False

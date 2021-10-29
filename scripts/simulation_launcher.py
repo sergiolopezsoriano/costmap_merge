@@ -8,7 +8,7 @@ from random import random, randint
 from math import pi
 
 
-class RobotLauncher:
+class SimulationLauncher:
     def __init__(self):
         self.robot_types = rospy.get_param('~robot_types')
         self.num_robots = rospy.get_param('~num_robots')
@@ -40,11 +40,11 @@ class RobotLauncher:
         robot_ns = robot_type + '_' + str(robot_num)
         self.robots_names.append(robot_ns)
         if self.random_pose:
-            x, y, z, roll, pitch, yaw = RobotLauncher.get_random_pose()
+            x, y, z, roll, pitch, yaw = self.get_random_pose()
         else:
             x, y, z, roll, pitch, yaw = rospy.get_param('~' + robot_ns + '/coordinates')
         if self.random_costmap_dimensions:
-            width, height = RobotLauncher.get_random_costmap_dimensions()
+            width, height = self.get_random_costmap_dimensions()
         else:
             width, height = rospy.get_param('~' + robot_ns + '/costmap')
         can_detect = rospy.get_param('~' + robot_ns + '/can_detect')
@@ -74,14 +74,14 @@ class RobotLauncher:
 if __name__ == "__main__":
 
     try:
-        rospy.init_node('robot_launcher', anonymous=True, log_level=rospy.INFO)
-        rospy.loginfo('[robot_launcher]: Node started')
-        robot_launcher = RobotLauncher()
+        rospy.init_node('simulation_launcher', anonymous=True, log_level=rospy.INFO)
+        rospy.loginfo('[simulation_launcher]: Node started')
+        robot_launcher = SimulationLauncher()
         robot_launcher.launch_robots()
         robot_launcher.set_ros_params()
         rospy.spin()
 
     except Exception as e:
-        rospy.logfatal('[robot_launcher]: Exception %s', str(e.message) + str(e.args))
+        rospy.logfatal('[simulation_launcher]: Exception %s', str(e.message) + str(e.args))
         e = traceback.format_exc()
         rospy.logfatal(e)
