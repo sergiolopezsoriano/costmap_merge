@@ -35,14 +35,14 @@ class CostmapNetwork:
         self.robots = dict()
         # Creating the costmap network with this costmap node
         self.robots[self.namespace] = CostmapRobot(self.namespace)
-        self.robots[self.namespace].set_start_at_origin('/' + str(self.namespace) + '/odom', rospy.Time.now())
+        self.robots[self.namespace].set_start_at_origin('/' + str(self.namespace) + '_tf/odom', rospy.Time.now())
 
     def cb_update_transforms(self, msg):
         for robot in msg.robot_list:
             if robot != self.namespace:
                 rospy.sleep(1)  # waiting for the detection manager to broadcast the transform
                 try:
-                    t = self.tfBuffer.lookup_transform(self.namespace + '/odom', robot + '/odom',  rospy.Time())
+                    t = self.tfBuffer.lookup_transform(self.namespace + '_tf/odom', robot + '_tf/odom',  rospy.Time())
                     if robot not in self.robots:
                         self.robots[robot] = CostmapRobot(robot)
                     self.robots[robot].set_start_from_transform(t)
@@ -121,7 +121,7 @@ class CostmapNetwork:
             global_costmap.info.origin.position.y = self.robots[robot_ymin].y - self.robots[
                 robot_ymin].roloco_height / 2 * global_costmap.info.resolution
             global_costmap.info.origin.orientation = self.robots[self.namespace].start.pose.orientation
-            global_costmap.header.frame_id = str(self.namespace) + '/odom'
+            global_costmap.header.frame_id = str(self.namespace) + '_tf/odom'
             return global_costmap
         except Exception as exception:
             rospy.logwarn('[build_global_costmap]: ' + str(exception))

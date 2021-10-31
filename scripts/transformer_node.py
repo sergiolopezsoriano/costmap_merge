@@ -7,7 +7,6 @@ from helpers import TransformHelper as th
 import tf2_ros
 from geometry_msgs.msg import TransformStamped
 from threading import Thread
-import signal
 
 
 class TransformerNode(Thread):
@@ -23,8 +22,6 @@ class TransformerNode(Thread):
         self.transform_received = False
         # Service to communicate with the transform managers
         rospy.Service('transformer_node_service', Transform, self.cb_action)
-        # manage keyboard interrupt due to open processes after exiting
-        signal.signal(signal.SIGINT, self.signal_handler)
 
     def cb_action(self, msg):
         self.set_transform(msg)
@@ -39,11 +36,7 @@ class TransformerNode(Thread):
     def run(self):
         while self.transform_received:
             self.br.sendTransform(self.t)
-            rospy.sleep(0.5)
-
-    @staticmethod
-    def signal_handler():
-        rospy.signal_shutdown('')
+            rospy.sleep(1)
 
 
 if __name__ == "__main__":
