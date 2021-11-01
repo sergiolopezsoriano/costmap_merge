@@ -3,12 +3,11 @@
 import rospy
 import roslaunch
 import traceback
-import rospkg
 
 
 class RobotLauncher:
     def __init__(self):
-        self.robot_ns = rospy.get_param('/robot_ns')
+        self.robot_ns = rospy.get_param('~robot_ns')
         self.robot_type = rospy.get_param(self.robot_ns + '/robots/' + self.robot_ns + '/robot_type')
         self.launch_file = rospy.get_param('~agent_launch_file')
         self.use_sim_time = rospy.get_param('/use_sim_time')

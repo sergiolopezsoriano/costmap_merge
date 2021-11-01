@@ -2,8 +2,7 @@
 <launch>
   <arg name="use_sim_time"  default="true"/>
   <arg name="gui"        default="true"/>
-<!--  <arg name="world_file" default="$(env TURTLEBOT_GAZEBO_WORLD_FILE)"/>-->
-  <arg name="world_file" value="/home/sergi/catkin_ws/src/hector_gazebo/hector_gazebo_worlds/worlds/sick_robot_day_2014.world"/>
+  <arg name="world_file" default="$(env TURTLEBOT_GAZEBO_WORLD_FILE)"/>
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="use_sim_time" value="$(arg use_sim_time)"/>

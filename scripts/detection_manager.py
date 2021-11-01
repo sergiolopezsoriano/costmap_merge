@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
 import traceback
-
-import rospy
-
 from costmap_merge.srv import Handshake2, Handshake2Response, Transform, TransformRequest, RobotName, RobotNameResponse
 from costmap_merge.msg import RobotList, QueueAccess
 from random import random

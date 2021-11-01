@@ -47,5 +47,5 @@
       <rosparam file="$(find costmap_merge)/config/costmap_network.yaml" command="load"/>
     </node>
   </group>
- printprint
+
 </launch>

@@ -42,7 +42,7 @@ class QueueManager:
         self.namespace = rospy.get_namespace().strip('/')
         # Detection synchronization
         self.access_queue = Queue()
-        self.queue_action_publisher = rospy.Publisher('/access_queue', QueueAccess)
+        self.queue_action_publisher = rospy.Publisher('/access_queue', QueueAccess, queue_size=1)
         rospy.Subscriber('/access_queue', QueueAccess, self.cb_access_queue, queue_size=10)
 
     def modify_queue(self, mode):
@@ -56,13 +56,13 @@ class QueueManager:
         if msg.mode == QueueAccess.PUSH:
             self.access_queue.put([msg.item.detector_ns, msg.item.stamp])
         elif msg.mode == QueueAccess.POP:
-            print('[' + self.namespace + '] 1: ' + str(self.access_queue.queue))
+            rospy.logdebug('[' + self.namespace + '] 1: ' + str(self.access_queue.queue))
             _list = queue_2_list(self.access_queue)
             _list.sort(key=lambda x: x[1])
             for index, element in enumerate(_list):
                 if element[0] == msg.item.detector_ns:
                     _list.pop(index)
                     self.access_queue = list_2_queue(_list)
-                    print('[' + self.namespace + '] 2: ' + str(self.access_queue.queue))
+                    rospy.logdebug('[' + self.namespace + '] 2: ' + str(self.access_queue.queue))
                     break
-            print('[' + self.namespace + '] 3: ' + str(self.access_queue.queue))
+            rospy.logdebug('[' + self.namespace + '] 3: ' + str(self.access_queue.queue))

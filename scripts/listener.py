@@ -42,7 +42,7 @@ class Listener:
             self.handshake2(msg.detector_ns, msg.pose_R_D, pose_R_R, msg.alpha, beta)
         else:
             # Transformation in the base_link frame (rot)-(trans)-(rot)T
-            self.handshake2(msg.detector_ns, pose_D_R, pose_R_R, msg.alpha, beta)
+            self.handshake2(msg.detector_ns, msg.pose_R_D, pose_R_R, msg.alpha, beta)
         return Handshake1Response()
 
     def find_detector_in_costmap(self, robot):

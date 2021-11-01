@@ -164,14 +164,6 @@ class CostmapNetwork:
         theta = math.atan2(height1, width1)
         height2 = abs(d * math.sin(abs(self.robots[robot].yaw) + theta))
         width2 = abs(d * math.cos(abs(self.robots[robot].yaw) - theta))
-        # if height2 % resol == 0:
-        #     height2 = int(height2 / resol)
-        # else:
-        #     height2 = int(height2 / resol) + 1
-        # if width2 % resol == 0:
-        #     width2 = int(width2 / resol)
-        # else:
-        #     width2 = int(width2 / resol) + 1
         height2 = int(height2 / resol)
         width2 = int(width2 / resol)
         self.robots[robot].roloco_width = max(width1, width2)
@@ -190,22 +182,19 @@ class CostmapNetwork:
                   self.robots[robot].local_costmap.info.origin.position.y + height1 / 2 * resol]
         height2 = self.robots[robot].roloco_height
         width2 = self.robots[robot].roloco_width
-        x1 = list()
-        y1 = list()
-        x2 = list()
-        y2 = list()
         # data2 = np.random.random_integers(self.occupancy_range, size=(width2 * height2))
         # data2 = np.reshape(data2, (width2, height2)).tolist()
         data2 = np.zeros([width2, height2])
-        # positions corresponding with the cell grid
+        # Gridmap starting position
         x = xo1 - (float(width2) - float(width1)) / 2 * resol
         y = yo1 - (float(height2) - float(height1)) / 2 * resol
+        # Vectors forming the gridmap
+        x1 = list()
+        y1 = list()
         for row in range(width2):
             x1.append(x + row * resol)
-            x2.append(x + row * resol)
         for col in range(height2):
             y1.append(y + col * resol)
-            y2.append(y + col * resol)
         index_x = 0
         index_y = 0
         # b = rospy.get_rostime()
@@ -217,13 +206,13 @@ class CostmapNetwork:
                 point2 = PoseHelper.rotate(origin, point1, self.robots[robot].yaw)
                 # index_x = list(filter(lambda i: i > point2[0], x1))[0]
                 # index_y = list(filter(lambda i: i > point2[1], y1))[0]
-                for value in x1:
+                for index, value in enumerate(x1):
                     if value > point2[0]:
-                        index_x = x1.index(value)
+                        index_x = index
                         break
-                for value in y1:
+                for index, value in enumerate(y1):
                     if value > point2[1]:
-                        index_y = y1.index(value)
+                        index_y = index
                         break
                 data2[index_x][index_y] = data[row][col]
         # c = rospy.get_rostime()
