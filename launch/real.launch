@@ -7,5 +7,4 @@
     <param name="robot_ns" value="$(arg robot_ns)"/>
     <rosparam file="$(find costmap_merge)/config/real.yaml" command="load"/>
   </node>
-<!--  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find costmap_merge)/rviz/two_robots.rviz"/>-->
 </launch>

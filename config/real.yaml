@@ -1,11 +1,14 @@
 # Path of the agent launch file
 agent_launch_file: '/home/antrobot/catkin_ws/src/costmap_merge/launch/agent.launch'
+detector_file: 'detector.py'
+listener_file: 'listener.py'
 
 robots:
   robot3:
     robot_type: 'robin50'                   # Type of robot
     coordinates: [2, 0, 0, 0, 0, 1.57]      # Robot starting position
     can_detect: True                        # is capable of detecting other robots
+    tag_id:                                 # RFID tag ID
   robot4:
     robot_type: 'robin50'                   # Type of robot
     coordinates: [0, 0, 0, 0, 0, 0]         # Robot starting position

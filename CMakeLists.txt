@@ -12,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   geometry_msgs
+  visualization_msgs
   message_generation
 )
 
@@ -62,6 +63,8 @@ add_message_files(
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
+  PCHandshake1.srv
+  PCHandshake2.srv
   Handshake1.srv
   Handshake2.srv
   RobotName.srv
@@ -174,6 +177,11 @@ catkin_install_python(PROGRAMS
   scripts/listener.py
   scripts/detection_manager.py
   scripts/transformer_node.py
+  scripts/pc_detector.py
+  scripts/pc_listener.py
+  scripts/transform_manager.py
+  scripts/frame_tree.py
+  scripts/queue_manager.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

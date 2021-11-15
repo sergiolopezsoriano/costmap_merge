@@ -14,6 +14,8 @@
   <arg name="resolution"/>
   <arg name="sim"/>
   <arg name="can_detect"/>
+  <arg name="detector_file"/>
+  <arg name="listener_file"/>
 
   <group ns="$(arg robot_ns)">
     <arg name="tf_prefix" value="$(arg robot_ns)_tf"/>
@@ -34,7 +36,7 @@
     </include>
 
     <group if="$(arg can_detect)">
-      <node name="detector" pkg="costmap_merge" type="detector.py" output="screen">
+      <node name="detector" pkg="costmap_merge" type="$(arg detector_file)" output="screen">
         <rosparam file="$(find costmap_merge)/config/detector.yaml" command="load"/>
       </node>
       <node name="detection_manager" pkg="costmap_merge" type="detection_manager.py" output="screen">
@@ -42,7 +44,7 @@
       </node>
       <node name="transform_manager" pkg="costmap_merge" type="transform_manager.py" output="screen"/>
     </group>
-    <node name="listener" pkg="costmap_merge" type="listener.py" output="screen"/>
+    <node name="listener" pkg="costmap_merge" type="$(arg listener_file)" output="screen"/>
     <node name="costmap_network" pkg="costmap_merge" type="costmap_network.py" output="screen">
       <rosparam file="$(find costmap_merge)/config/costmap_network.yaml" command="load"/>
     </node>

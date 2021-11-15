@@ -10,6 +10,8 @@ class RobotLauncher:
         self.robot_ns = rospy.get_param('~robot_ns')
         self.robot_type = rospy.get_param(self.robot_ns + '/robots/' + self.robot_ns + '/robot_type')
         self.launch_file = rospy.get_param('~agent_launch_file')
+        self.detector_file = rospy.get_param('~detector_file')
+        self.listener_file = rospy.get_param('~listener_file')
         self.use_sim_time = rospy.get_param('/use_sim_time')
 
     def launch_robot(self):
@@ -25,7 +27,8 @@ class RobotLauncher:
         can_detect = rospy.get_param(self.robot_ns + '/robots/' + self.robot_ns + '/can_detect')
         args = ['robot_ns:=' + str(self.robot_ns), 'robot_type:=' + str(self.robot_type), 'x:=' + str(x),
                 'y:=' + str(y), 'z:=' + str(z), 'roll:=' + str(roll), 'pitch:=' + str(pitch), 'yaw:=' + str(yaw),
-                'sim:=' + str(self.use_sim_time), 'can_detect:=' + str(can_detect)]
+                'sim:=' + str(self.use_sim_time), 'can_detect:=' + str(can_detect),
+                'detector_file:=' + self.detector_file, 'listener_file:=' + self.listener_file]
         return args
 
 

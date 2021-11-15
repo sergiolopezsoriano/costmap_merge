@@ -14,6 +14,8 @@ class SimulationLauncher:
         self.num_robots = rospy.get_param('~num_robots')
         self.path = RosPack().get_path('costmap_merge')
         self.launch_file = self.path + '/launch/agent.launch'
+        self.detector_file = rospy.get_param('~detector_file')
+        self.listener_file = rospy.get_param('~listener_file')
         self.random_pose = rospy.get_param('~random_pose')
         self.random_costmap_dimensions = rospy.get_param('~random_costmap_dimensions')
         self.resolution = rospy.get_param('~costmap_resolution')
@@ -51,7 +53,8 @@ class SimulationLauncher:
         args = ['robot_ns:=' + robot_ns, 'robot_type:=' + robot_type, 'x:=' + str(x), 'y:=' + str(y),
                 'z:=' + str(z), 'roll:=' + str(roll), 'pitch:=' + str(pitch), 'yaw:=' + str(yaw),
                 'width:=' + str(width), 'height:=' + str(height), 'resolution:=' + str(self.resolution),
-                'sim:=' + str(self.use_sim_time), 'can_detect:=' + str(can_detect)]
+                'sim:=' + str(self.use_sim_time), 'can_detect:=' + str(can_detect),
+                'detector_file:=' + self.detector_file, 'listener_file:=' + self.listener_file]
         return args
 
     @staticmethod
