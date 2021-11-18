@@ -1,0 +1,3 @@
+int32 num_detections
+---
+string[] sorted_detections

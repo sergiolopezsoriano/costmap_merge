@@ -63,12 +63,11 @@ add_message_files(
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  PCHandshake1.srv
-  PCHandshake2.srv
   Handshake1.srv
   Handshake2.srv
   RobotName.srv
   Transform.srv
+  RobotIDs.srv
 )
 
 ## Generate actions in the 'action' folder
@@ -128,7 +127,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-# include
+  include
   ${catkin_INCLUDE_DIRS}
 )
 
@@ -179,6 +178,7 @@ catkin_install_python(PROGRAMS
   scripts/transformer_node.py
   scripts/pc_detector.py
   scripts/pc_listener.py
+  scripts/identification.py
   scripts/transform_manager.py
   scripts/frame_tree.py
   scripts/queue_manager.py

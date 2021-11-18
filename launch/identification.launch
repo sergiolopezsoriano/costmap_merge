@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="robot_ns" default="$(env ROBOT_NS)"/>
+  <node name="identification" pkg="costmap_merge" type="identification.py" output="screen" ns="$(arg robot_ns)">
+    <rosparam file="$(find costmap_merge)/config/real.yaml" command="load"/>
+  </node>
+</launch>
