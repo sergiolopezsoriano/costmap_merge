@@ -48,19 +48,18 @@ class RobotTag:
 class Identification:
 
     def __init__(self):
-        self.tf_prefix = rospy.get_param('/tf_prefix', rospy.get_namespace()[1:-1] + '_tf/')
         self.namespace = rospy.get_namespace().strip('/')
         self.antenna_map = dict()
-        self.antenna_map['front'] = rospy.get_param('/' + self.namespace + '/rfid_interaction/prod/antenna_port/front')
-        self.antenna_map['back'] = rospy.get_param('/' + self.namespace + '/rfid_interaction/prod/antenna_port/back')
-        self.antenna_map['left'] = rospy.get_param('/' + self.namespace + '/rfid_interaction/prod/antenna_port/left')
-        self.antenna_map['right'] = rospy.get_param('/' + self.namespace + '/rfid_interaction/prod/antenna_port/right')
+        self.antenna_map['front'] = rospy.get_param('/' + self.namespace + '/rfid/antenna_port/front')
+        self.antenna_map['back'] = rospy.get_param('/' + self.namespace + '/rfid/antenna_port/back')
+        self.antenna_map['left'] = rospy.get_param('/' + self.namespace + '/rfid/antenna_port/left')
+        self.antenna_map['right'] = rospy.get_param('/' + self.namespace + '/rfid/antenna_port/right')
         # Server controlling the main operation of discriminating and sorting a list of epcs
         self.robot_epcs = list()
-        rospy.Service('/' + self.namespace + '/identification/robot_identification_srv', RobotIDs, self.cb_robot_identification)
+        rospy.Service('/' + self.namespace + '/robot_identification_srv', RobotIDs, self.cb_robot_identification)
         # PART 1: check identification symmetry with other robot
         # self.last_tags_pub = rospy.Publisher('/' + self.namespace + '/robot_ids', RobotList, queue_size=10)
-        self.robots = rospy.get_param('/' + self.namespace + '/identification/robots')
+        self.robots = rospy.get_param('/' + self.namespace + '/robots')
         self.robot_ids = dict()
         for robot in self.robots.items():
             self.robot_ids[robot[1]['tag_id']] = robot[0]
@@ -74,7 +73,7 @@ class Identification:
         # PART 2: check identification symmetry with other robot
         # rospy.Subscriber('/tags_update', String, self.cb_tags_update, queue_size=10)
         self.empty_detections()
-        rfid_subs = rospy.Subscriber('/' + self.namespace + '/rfid_interaction/epcs', EpcInfo, self.cb_rfid_controller, queue_size=200)
+        rfid_subs = rospy.Subscriber('/' + self.namespace + '/rfid/epcs', EpcInfo, self.cb_rfid_controller, queue_size=200)
         while not rfid_subs.get_num_connections():
             rospy.sleep(0.1)
         rospy.sleep(2)
@@ -95,10 +94,11 @@ class Identification:
         msg.sorted_detections = sorted_detections[0:req.num_detections]
         msg.sorted_detections.reverse()
         rospy.logdebug('[identification]: ' + str(msg.sorted_detections))
+        print(msg)
         return msg
 
     def cb_rfid_controller(self, msg):
-        if msg.epc in self.robot_epcs:
+        if msg.epc in self.robot_epcs and msg.epc is not self.robots[self.namespace]['tag_id']:
             tag_id = msg.epc
             antenna = msg.antenna_port
             rssi = msg.RSSI
@@ -106,7 +106,7 @@ class Identification:
             if tag_id not in self.rfid_detections:
                 self.rfid_detections[tag_id] = RobotTag(tag_id)
             self.rfid_detections[tag_id].add_reading(antenna, rssi, stamp)
-            rospy.logdebug('[rfid reader]: ' + str(msg.epc) + ' : ' + str(msg.antenna_port) + ' : ' + str(msg.RSSI))
+            rospy.logdebug('[identification]: ' + str(msg.epc) + ' : ' + str(msg.antenna_port) + ' : ' + str(msg.RSSI))
 
 
 if __name__ == "__main__":

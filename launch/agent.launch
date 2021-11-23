@@ -43,12 +43,11 @@
         <rosparam file="$(find costmap_merge)/config/detection_manager.yaml" command="load"/>
       </node>
       <node name="transform_manager" pkg="costmap_merge" type="transform_manager.py" output="screen"/>
-      <node name="identification" pkg="costmap_merge" type="identification.py" output="screen" unless="sim"/>
+      <node name="identification" pkg="costmap_merge" type="identification.py" output="screen" unless="$(arg sim)"/>
     </group>
     <node name="listener" pkg="costmap_merge" type="$(arg listener_file)" output="screen"/>
     <node name="costmap_network" pkg="costmap_merge" type="costmap_network.py" output="screen">
       <rosparam file="$(find costmap_merge)/config/costmap_network.yaml" command="load"/>
     </node>
   </group>
-
 </launch>

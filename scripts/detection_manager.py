@@ -2,7 +2,7 @@
 
 import traceback
 from costmap_merge.srv import Handshake2, Handshake2Response, Transform, TransformRequest, RobotName, RobotNameResponse
-from costmap_merge.msg import RobotList, QueueAccess
+from costmap_merge.msg import RobotList, QueueAccess, FrameList
 from random import random
 from frame_tree import *
 from queue_manager import QueueManager

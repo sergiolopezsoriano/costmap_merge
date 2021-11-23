@@ -3,8 +3,8 @@
   <arg name="robot_ns" default="$(env ROBOT_NS)"/>
   <arg name="use_sim_time"  default="false"/>
   <param name="use_sim_time" value="$(arg use_sim_time)"/>
-  <node name="$(arg robot_ns)" pkg="costmap_merge" type="real_launcher.py" output="screen">
+  <rosparam file="$(find costmap_merge)/config/real.yaml" command="load" ns="$(arg robot_ns)"/>
+  <node name="$(arg robot_ns)_real_launcher" pkg="costmap_merge" type="real_launcher.py" output="screen">
     <param name="robot_ns" value="$(arg robot_ns)"/>
-    <rosparam file="$(find costmap_merge)/config/real.yaml" command="load"/>
   </node>
 </launch>
