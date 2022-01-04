@@ -7,6 +7,7 @@ from costmap_merge.srv import Handshake1, Handshake1Request, RobotIDs
 from helpers import PoseHelper
 from visualization_msgs.msg import MarkerArray
 from nav_msgs.msg import Odometry
+import tf2_ros
 
 
 class PCDetector:

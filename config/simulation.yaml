@@ -5,7 +5,7 @@
 ########################## global config vars ################################
 
 robot_types: ['robin50', 'quadrotor', 'turtlebot']
-num_robots: [1, 0, 0]
+num_robots: [0, 0, 2]
 
 detector_file: 'detector.py'
 listener_file: 'listener.py'

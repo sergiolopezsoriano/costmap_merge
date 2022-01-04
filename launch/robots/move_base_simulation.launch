@@ -1,30 +1,38 @@
-<?xml version="1.0"?>
+<?xml version="0.0"?>
 <launch>
   <arg name="robot_ns"/>
-  <arg name="robot_name" value="robot_ns"/>
   <arg name="tf_prefix"/>
   <arg name="width"/>
   <arg name="height"/>
   <arg name="resolution"/>
-  <!--- Run AMCL -->
-<!--  <include file="$(find amcl)/examples/amcl_diff.launch"/>-->
-  <!-- Define your move_base node -->
+  <arg name="merge_costmaps"/>
+
+  <include file="$(find turtlebot_navigation)/launch/includes/velocity_smoother.launch.xml"/>
+  <include file="$(find turtlebot_navigation)/launch/includes/safety_controller.launch.xml"/>
+
+  <!-- Run move_base -->
   <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+
+    <remap from="cmd_vel" to="cmd_vel_mux/input/navi"/>
+    <remap from="camera/depth/points" to="camera/depth/points"/>
+    <remap from="scan" to="scan"/>
+
+    <rosparam file="$(find costmap_merge)/config/agent_move_base/move_base_params.yaml" command="load" />
+    <rosparam file="$(find costmap_merge)/config/agent_move_base/dwa_local_planner_params.yaml" command="load" subst_value="True">$(arg tf_prefix)</rosparam>
+    <rosparam file="$(find costmap_merge)/config/agent_move_base/navfn_global_planner_params.yaml" command="load" />
+    <rosparam file="$(find costmap_merge)/config/agent_move_base/global_planner_params.yaml" command="load" />
     <rosparam file="$(find costmap_merge)/config/agent_move_base/costmap_common_params.yaml" command="load" ns="global_costmap" subst_value="True">$(arg tf_prefix)</rosparam>
     <rosparam file="$(find costmap_merge)/config/agent_move_base/costmap_common_params.yaml" command="load" ns="local_costmap" subst_value="True">$(arg tf_prefix)</rosparam>
-    <rosparam file="$(find costmap_merge)/config/agent_move_base/local_costmap_params.yaml"  command="load" subst_value="True">
+    <rosparam file="$(find costmap_merge)/config/agent_move_base/local_costmap_params.yaml" command="load" subst_value="True">
       $(arg tf_prefix), $(arg width), $(arg height), $(arg resolution)
     </rosparam>
     <rosparam file="$(find costmap_merge)/config/agent_move_base/global_costmap_params.yaml" command="load" subst_value="True">
       $(arg tf_prefix), $(arg resolution)
     </rosparam>
-    <rosparam file="$(find costmap_merge)/config/agent_move_base/move_base_params.yaml" command="load" />
-    <rosparam file="$(find costmap_merge)/config/agent_move_base/dwa_local_planner_params.yaml" command="load" subst_value="True">$(arg tf_prefix)</rosparam>
-<!--    <rosparam file="$(find costmap_merge)/config/agent_move_base/navfn_global_planner_params.yaml" command="load" />-->
-    <rosparam file="$(find costmap_merge)/config/agent_move_base/global_planner_params.yaml" command="load" />
     <rosparam file="$(find costmap_merge)/config/agent_move_base/recovery_params.yaml" command="load" />
-    <remap from="/$(arg robot_ns)/move_base/global_costmap/costmap" to="/$(arg robot_ns)/global_costmap"/>
-    <remap from="/$(arg robot_ns)/move_base/local_costmap/costmap" to="/$(arg robot_ns)/local_costmap"/>
-    <remap from="cmd_vel" to="cmd_vel_mux/input/navi"/>
+
+    <remap from="cmd_vel" to="navigation_velocity_smoother/raw_cmd_vel"/>
+    <remap from="/$(arg robot_ns)/move_base/global_costmap/costmap" to="/$(arg robot_ns)/global_costmap" if="$(arg merge_costmaps)"/>
+    <remap from="/$(arg robot_ns)/move_base/local_costmap/costmap" to="/$(arg robot_ns)/local_costmap" if="$(arg merge_costmaps)"/>
   </node>
 </launch>

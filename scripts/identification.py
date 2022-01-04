@@ -73,7 +73,7 @@ class Identification:
         # PART 2: check identification symmetry with other robot
         # rospy.Subscriber('/tags_update', String, self.cb_tags_update, queue_size=10)
         self.empty_detections()
-        rfid_subs = rospy.Subscriber('/' + self.namespace + '/rfid/epcs', EpcInfo, self.cb_rfid_controller, queue_size=200)
+        rfid_subs = rospy.Subscriber('/' + self.namespace + '/rfid_publisher/epcs', EpcInfo, self.cb_rfid_controller, queue_size=200)
         while not rfid_subs.get_num_connections():
             rospy.sleep(0.1)
         rospy.sleep(2)
