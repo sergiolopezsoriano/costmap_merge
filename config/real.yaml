@@ -5,8 +5,8 @@
 ###################################################################################
 # Path of the agent launch file
 agent_launch_file: '/home/antrobot/catkin_ws/src/costmap_merge/launch/agent.launch'
-detector_file: 'pc_detector.py'
-listener_file: 'pc_listener.py'
+detector_file: 'detector.py'
+listener_file: 'listener.py'
 
 #####################################################
 # The parameter 'mode' enables 2 modes of operation #
@@ -15,28 +15,28 @@ listener_file: 'pc_listener.py'
 #####################################################
 
 robots:
-  robot1:
-    robot_type: 'robin50'                   # Type of robot
-    coordinates: [0, 0, 0, 0, 0, 0]         # Robot starting position
-    can_detect: True                        # is capable of detecting other robots
-    tag_id: '0001'                          # RFID tag ID
-  robot2:
-    robot_type: 'robin50'                   # Type of robot
-    coordinates: [0, 0, 0, 0, 0, 0]         # Robot starting position
-    can_detect: True                        # is capable of detecting other robots
-    tag_id: '0002'                          # RFID tag ID
+#  robot1:
+#    robot_type: 'robin50'                   # Type of robot
+#    coordinates: [0, 0, 0, 0, 0, 0]         # Robot starting position
+#    can_detect: True                        # is capable of detecting other robots
+#    tag_id: '0001'                          # RFID tag ID
+#  robot2:
+#    robot_type: 'robin50'                   # Type of robot
+#    coordinates: [0, 0, 0, 0, 0, 0]         # Robot starting position
+#    can_detect: True                        # is capable of detecting other robots
+#    tag_id: '0002'                          # RFID tag ID
   robot3:
     robot_type: 'robin50'                   # Type of robot
-    coordinates: [2, 0, 0, 0, 0, 1.57]      # Robot starting position
+    coordinates: [0, 0, 0, 0, 0, 3.14]    # Robot starting position
     can_detect: True                        # is capable of detecting other robots
     tag_id: '0003'                          # RFID tag ID
   robot4:
     robot_type: 'robin50'                   # Type of robot
-    coordinates: [0, 0, 0, 0, 0, 0]         # Robot starting position
+    coordinates: [-8, 0, 0, 0, 0, 0]        # Robot starting position
     can_detect: True                        # is capable of detecting other robots
     tag_id: '0004'                          # RFID tag ID
-  robot5:
-    robot_type: 'robin50'                   # Type of robot
-    coordinates: [0, 0, 0, 0, 0, 0]         # Robot starting position
-    can_detect: True                        # is capable of detecting other robots
-    tag_id: '0005'                          # RFID tag ID
+#  robot5:
+#    robot_type: 'robin50'                   # Type of robot
+#    coordinates: [0, 0, 0, 0, 0, 0]         # Robot starting position
+#    can_detect: True                        # is capable of detecting other robots
+#    tag_id: '0005'                          # RFID tag ID

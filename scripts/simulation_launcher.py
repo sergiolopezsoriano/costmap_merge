@@ -23,15 +23,13 @@ class SimulationLauncher:
         self.args = list()
         self.robots_names = list()
 
-    def set_ros_params(self):
-        rospy.set_param('/robots_names', self.robots_names)
-
     def launch_robots(self):
         for index, robot_type in enumerate(self.robot_types):
             if not self.num_robots[index]:
                 continue
             for k in range(self.num_robots[index]):
                 self.args.append((self.launch_file, self.configure_robot(robot_type, k + 1)))
+        rospy.set_param('/robots_names', self.robots_names)
         uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
         roslaunch.configure_logging(uuid)
         parent = roslaunch.parent.ROSLaunchParent(uuid, self.args)
@@ -81,7 +79,6 @@ if __name__ == "__main__":
         rospy.loginfo('[simulation_launcher]: Node started')
         robot_launcher = SimulationLauncher()
         robot_launcher.launch_robots()
-        robot_launcher.set_ros_params()
         rospy.spin()
 
     except Exception as e:

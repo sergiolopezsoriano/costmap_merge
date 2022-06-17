@@ -5,7 +5,7 @@
 ########################## global config vars ################################
 
 robot_types: ['robin50', 'quadrotor', 'turtlebot']
-num_robots: [0, 0, 2]
+num_robots: [0, 0, 3]
 
 detector_file: 'detector.py'
 listener_file: 'listener.py'
@@ -39,15 +39,15 @@ robin50_3:
   costmap: [3, 3]
   can_detect: True
 turtlebot_1:
-  coordinates: [0, -2, 0, 0, 0, -1]
+  coordinates: [0, -3, 0, 0, 0, 0]
   costmap: [3, 3]
   can_detect: True
 turtlebot_2:
-  coordinates: [-3, -3, 0, 0, 0, 0.5]
+  coordinates: [-3, -3, 0, 0, 0, 0.3927]
   costmap: [3, 3]
   can_detect: True
 turtlebot_3:
-  coordinates: [ -6, -3, 0, 0, 0, 0 ]
+  coordinates: [ 0, 0, 0, 0, 0, 0.7854]
   costmap: [ 3, 3 ]
   can_detect: True
 

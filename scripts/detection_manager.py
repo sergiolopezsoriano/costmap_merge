@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import traceback
+
+import rospy
 from costmap_merge.srv import Handshake2, Handshake2Response, Transform, TransformRequest, RobotName, RobotNameResponse
 from costmap_merge.msg import RobotList, QueueAccess, FrameList
 from random import random
@@ -146,7 +148,7 @@ class DetectionManager:
 if __name__ == "__main__":
 
     try:
-        rospy.init_node('detection_manager', log_level=rospy.INFO)
+        rospy.init_node('detection_manager', log_level=rospy.DEBUG)
         manager = DetectionManager()
         rospy.spin()
 
